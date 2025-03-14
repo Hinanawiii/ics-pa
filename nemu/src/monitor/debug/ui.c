@@ -111,12 +111,34 @@ static int cmd_info(char *args)
   }
   
   if (strcmp(arg, "r") == 0) {
-    // Print register values
-    for (int i = 0; i < 8; i++) {
-            printf("%-5s: 0x%08x\n", regsl[i], reg_l(i));
+        // 打印完整寄存器视图
+        printf("-----------------------------------------\n");
+        printf("| %-4s | %-12s | %-4s | %-12s |\n", 
+            "32bit", "Value", "8bit", "Value");
+        
+        for (int i = 0; i < 8; i++) {
+            // 打印32位寄存器及其对应的16/8位寄存器
+            printf("|------|-------------|------|-------------|\n");
+            printf("| %-4s | 0x%08x  | %-4s | 0x%08x  |\n", 
+                regsl[i], reg_l(i),
+                regsb[i], reg_b(i));
+            
+            // 单独处理高位寄存器(AH,CH,DH,BH)
+            if (i < 4) { // 只有前4个寄存器有高位
+                printf("|      |             | %-4s | 0x%08x  |\n",
+                    regsb[i+4], (reg_l(i) >> 8) & 0xff);
+            }
+            
+            // 打印16位寄存器视图
+            printf("| %-4s | 0x%08x  |      |             |\n",
+                regsw[i], reg_w(i));
         }
-    printf("%-5s: 0x%08x\n", "eip", cpu.eip);
-  } 
+        printf("-----------------------------------------\n");
+        
+        // 打印EIP
+        printf("eip: 0x%08x\n", cpu.eip);
+        return 0;
+    }
   else if (strcmp(arg, "w") == 0) {
     // Print watchpoint information
     printf("Watchpoints not implemented.\n");

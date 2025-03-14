@@ -8,6 +8,7 @@
 #include <readline/history.h>
 
 void cpu_exec(uint64_t);
+static int cmd_si(char *args);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
@@ -47,8 +48,9 @@ static struct {
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
 
-  /* TODO: Add more commands */
 
+  /* TODO: Add more commands */
+  {"si", "Step through N instructions", cmd_si},
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
@@ -75,6 +77,28 @@ static int cmd_help(char *args) {
   }
   return 0;
 }
+
+static int cmd_si(char *args){
+
+  char *arg = strtok(NULL, " ");
+  int steps = 1;  // default value
+  
+  if (arg != NULL) {
+    steps = atoi(arg);
+    if (steps <= 0) {
+      printf("Invalid step count: %s\n", args);
+      printf("Invalid number of steps. Using default (1).\n");
+      steps = 1;
+    }
+  }
+  
+  printf("Executing %d step(s)...\n", steps);
+  cpu_exec(steps);
+  return 0;
+
+}
+
+
 
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {

@@ -150,9 +150,39 @@ static int cmd_info(char *args)
   return 0;
 }
 
-static int cmd_x(char *args){
-  return 0;
+static int cmd_x(char *args) {
+    char *arg1 = strtok(args, " ");
+    char *arg2 = strtok(NULL, " ");
+    
+    if (arg1 == NULL || arg2 == NULL) {
+        printf("Usage: x N 0xADDR\n");
+        return 0;
+    }
+
+    // 解析扫描次数
+    int count = atoi(arg1);
+    if (count <= 0) {
+        printf("Invalid count: %s\n", arg1);
+        return 0;
+    }
+
+    // 只支持十六进制数字
+    uint32_t addr;
+    if (sscanf(arg2, "0x%x", &addr) != 1) {
+        printf("Invalid address format: %s\n", arg2);
+        return 0;
+    }
+
+    // 扫描内存
+    printf("Address    : Value\n");
+    printf("------------------\n");
+    for (int i = 0; i < count; i++) {
+        uint32_t value = vaddr_read(addr + i*4, 4); // 读取4字节
+        printf("0x%08x: 0x%08x\n", addr + i*4, value);
+    }
+    return 0;
 }
+
 
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {

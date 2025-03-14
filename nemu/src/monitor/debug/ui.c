@@ -112,13 +112,14 @@ static int cmd_info(char *args)
   
   if (strcmp(arg, "r") == 0) {
     // Print register values
-    extern void print_reg(void);  // Declare the register printing function
-    print_reg();
+    for (int i = 0; i < 8; i++) {
+            printf("%-5s: 0x%08x\n", regsl[i], reg_l(i));
+        }
+    printf("%-5s: 0x%08x\n", "eip", cpu.eip);
   } 
   else if (strcmp(arg, "w") == 0) {
     // Print watchpoint information
-    extern void list_watchpoint(void);  // Declare the watchpoint listing function
-    list_watchpoint();
+    printf("Watchpoints not implemented.\n");
   } 
   else {
     printf("Unknown info subcommand '%s'\n,retry", arg);

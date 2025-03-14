@@ -9,6 +9,8 @@
 
 void cpu_exec(uint64_t);
 static int cmd_si(char *args) ;
+static int cmd_info(char *args);
+static int cmd_x(char *args);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
@@ -51,6 +53,8 @@ static struct {
 
   /* TODO: Add more commands */
   {"si", "Step through N instructions", cmd_si},
+  { "info", "Print program status", cmd_info },
+  { "x", "Scan memory", cmd_x },
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
@@ -98,7 +102,34 @@ static int cmd_si(char *args){
 
 }
 
+static int cmd_info(char *args)
+{
+  char *arg = strtok(NULL, " ");
+  if (arg == NULL) {
+    printf("Try 'r' for registers or 'w' for watchpoints.\n");
+    return 0;
+  }
+  
+  if (strcmp(arg, "r") == 0) {
+    // Print register values
+    extern void print_reg(void);  // Declare the register printing function
+    print_reg();
+  } 
+  else if (strcmp(arg, "w") == 0) {
+    // Print watchpoint information
+    extern void list_watchpoint(void);  // Declare the watchpoint listing function
+    list_watchpoint();
+  } 
+  else {
+    printf("Unknown info subcommand '%s'\n,retry", arg);
+  }
+  
+  return 0;
+}
 
+static int cmd_x(char *args){
+
+}
 
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {

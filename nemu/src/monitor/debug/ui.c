@@ -8,7 +8,7 @@
 #include <readline/history.h>
 
 void cpu_exec(uint64_t);
-static int cmd_si(char *args);
+static int cmd_si(char *args) ;
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {

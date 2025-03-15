@@ -11,6 +11,7 @@ void cpu_exec(uint64_t);
 static int cmd_si(char *args) ;
 static int cmd_info(char *args);
 static int cmd_x(char *args);
+static int cmd_p(char *args);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
@@ -55,6 +56,7 @@ static struct {
   {"si", "Step through N instructions", cmd_si},
   { "info", "Print program status", cmd_info },
   { "x", "Scan memory", cmd_x },
+  {"p", "Evaluate expression", cmd_p},
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
@@ -159,7 +161,6 @@ static int cmd_x(char *args) {
         return 0;
     }
 
-    // 解析扫描次数
     int count = atoi(arg1);
     if (count <= 0) {
         printf("Invalid count: %s\n", arg1);
@@ -173,7 +174,6 @@ static int cmd_x(char *args) {
         return 0;
     }
 
-    // 扫描内存
     printf("Address    : Value\n");
     printf("------------------\n");
     for (int i = 0; i < count; i++) {
@@ -183,6 +183,22 @@ static int cmd_x(char *args) {
     return 0;
 }
 
+static int cmd_p(char *args) {
+    if (args == NULL) {
+        printf("Usage: p EXPR\n");
+        return 0;
+    }
+    
+    bool success;
+    uint32_t result = expr(args, &success);
+    
+    if (success) {
+        printf("Result: %u (0x%08x)\n", result, result);
+    } else {
+        printf("Invalid expression: %s\n", args);
+    }
+    return 0;
+}
 
 void ui_mainloop(int is_batch_mode) {
   if (is_batch_mode) {

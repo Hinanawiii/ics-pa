@@ -7,12 +7,13 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ
+  TK_NOTYPE = 256, TK_EQ,
+
 
   /* TODO: Add more token types */
-
+ TK_NUM, 
 };
-
+  
 static struct rule {
   char *regex;
   int token_type;
@@ -25,6 +26,13 @@ static struct rule {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
   {"==", TK_EQ}         // equal
+  {"-", '-'},
+  {"\\*", '*'}, 
+  {"/", '/'},
+  {"\\(", '('},         
+  {"\\)", ')'},
+  {"[0-9]+", TK_NUM}
+  
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -53,7 +61,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-Token tokens[32];
+Token tokens[32];// no more than 32
 int nr_token;
 
 static bool make_token(char *e) {
@@ -80,7 +88,23 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          default: TODO();
+          //default: TODO();
+           case TK_NOTYPE: 
+   		 break;
+	   case TK_NUM:
+  	   case '+': case '-': case '*': case '/':
+ 	   case '(': case ')':
+           if (nr_token >= 32)
+	   {
+		panic("Too many tokens");
+   	   }
+	   tokens[nr_token].type = rules[i].token_type;
+           strncpy(tokens[nr_token].str, substr_start, substr_len);
+           tokens[nr_token].str[substr_len] = '\0';
+           nr_token++;
+                break;
+	   default:
+    		panic("Unexpected token");
         }
 
         break;

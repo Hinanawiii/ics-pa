@@ -177,7 +177,7 @@ static int cmd_x(char *args) {
     printf("Address    : Value\n");
     printf("------------------\n");
     for (int i = 0; i < count; i++) {
-        uint32_t value = vaddr_read(addr + i*4, 4); // 读取4字节
+        uint32_t value = vaddr_read(addr + i*4, 4); 
         printf("0x%08x: 0x%08x\n", addr + i*4, value);
     }
     return 0;

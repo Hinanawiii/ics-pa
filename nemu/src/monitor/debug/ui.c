@@ -192,10 +192,12 @@ static int cmd_p(char *args) {
     bool success;
     uint32_t result = expr(args, &success);
     
-    if (success) {
+    //if (success) 
+    {
         printf("Result: %u (0x%08x)\n", result, result);
-    } else {
-        printf("Invalid expression: %s\n", args);
+    } //else 
+    {
+        //printf("Invalid expression: %s\n", args);
     }
     return 0;
 }

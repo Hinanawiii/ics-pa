@@ -5,6 +5,8 @@
  */
 #include <sys/types.h>
 #include <regex.h>
+#include <stdlib.h> // for atoi
+#include <limits.h>  
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
@@ -25,7 +27,7 @@ static struct rule {
 
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
-  {"==", TK_EQ}         // equal
+  {"==", TK_EQ},         // equal
   {"-", '-'},
   {"\\*", '*'}, 
   {"/", '/'},
@@ -120,6 +122,68 @@ static bool make_token(char *e) {
   return true;
 }
 
+static bool check_parentheses(int p, int q, bool *success) {
+  if (tokens[p].type != '(' || tokens[q].type != ')') return false;
+  int balance = 0;
+  for (int i = p; i <= q; i++) {
+    if (tokens[i].type == '(') balance++;
+    else if (tokens[i].type == ')') balance--;
+    if (balance < 0) { *success = false; return false; }
+  }
+  return (balance == 0);
+}//简单小算法题
+
+static uint32_t eval(int p,int q,bool *success)//改了一点模板
+{
+  if (p > q || !*success) { *success = false; return 0; }
+  if (p == q) {
+    if (tokens[p].type == TK_NUM) return atoi(tokens[p].str);
+    *success = false; return 0;
+  }
+  if (check_parentheses(p, q, success)) return eval(p+1, q-1, success);
+  
+  int op_pos = -1, min_prio = INT_MAX, balance = 0;
+
+  for (int i = p; i <= q; i++) {
+    if (tokens[i].type == '(') balance++;
+    else if (tokens[i].type == ')') balance--;
+    if (balance != 0) continue;
+
+    if (tokens[i].type == '+' || tokens[i].type == '-') {
+        // 这里用 <= 是为了优先选择右侧的同优先级运算符（右结合）
+        if (1 <= min_prio) {
+            min_prio = 1;
+            op_pos = i; // 记录位置
+        }
+    }
+  
+    else if (tokens[i].type == '*' || tokens[i].type == '/') {
+        // 仅当优先级更高时
+        if (2 <= min_prio) {
+            min_prio = 2;
+            op_pos = i;
+        }
+    }
+
+  if (op_pos == -1) { *success = false; return 0; }
+  
+  uint32_t val1 = eval(p, op_pos-1, success);
+  uint32_t val2 = eval(op_pos+1, q, success);
+
+  switch (tokens[op_pos].type) {
+    case '+': return val1 + val2;
+    case '-': return val1 - val2;
+    case '*': return val1 * val2;
+    case '/': 
+      if (val2 == 0) { *success = false; return 0; }//不能除以0
+      return val1 / val2;
+    default: 
+      *success = false; return 0;
+  }
+ }
+ return 0; 
+}
+
 uint32_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
@@ -127,7 +191,7 @@ uint32_t expr(char *e, bool *success) {
   }
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
-
-  return 0;
+  //TODO();
+  *success = true;
+  return eval(0, nr_token-1, success);
 }

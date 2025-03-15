@@ -133,55 +133,69 @@ static bool check_parentheses(int p, int q, bool *success) {
   return (balance == 0);
 }//简单小算法题
 
-static uint32_t eval(int p,int q,bool *success)//改了一点模板
-{
+static uint32_t eval(int p, int q, bool *success) {
   if (p > q || !*success) { *success = false; return 0; }
   if (p == q) {
-    if (tokens[p].type == TK_NUM) return atoi(tokens[p].str);
-    *success = false; return 0;
+    if (tokens[p].type == TK_NUM) {
+      return atoi(tokens[p].str);
+    }
+    *success = false;
+    return 0;
   }
-  if (check_parentheses(p, q, success)) return eval(p+1, q-1, success);
-  
-  int op_pos = -1, min_prio = INT_MAX, balance = 0;
 
+  // 检查括号包围的情况
+  if (check_parentheses(p, q, success) == true && *success) {
+    return eval(p + 1, q - 1, success);
+  }
+
+  int op_pos = -1;
+  int min_prio = INT_MAX;
+  int balance = 0;
+
+  // 遍历所有token，寻找dominant operator
   for (int i = p; i <= q; i++) {
     if (tokens[i].type == '(') balance++;
     else if (tokens[i].type == ')') balance--;
     if (balance != 0) continue;
 
-    if (tokens[i].type == '+' || tokens[i].type == '-') {
-        // 这里用 <= 是为了优先选择右侧的同优先级运算符（右结合）
-        if (1 <= min_prio) {
-            min_prio = 1;
-            op_pos = i; // 记录位置
-        }
-    }
-  
-    else if (tokens[i].type == '*' || tokens[i].type == '/') {
-        // 仅当优先级更高时
-        if (2 <= min_prio) {
-            min_prio = 2;
-            op_pos = i;
-        }
+    // 处理运算符优先级
+    int current_prio = -1;
+    switch (tokens[i].type) {
+      case '+':
+      case '-': current_prio = 1; break;
+      case '*':
+      case '/': current_prio = 2; break;
+      default: continue; // 跳过非运算符
     }
 
-  if (op_pos == -1) { *success = false; return 0; }
-  
-  uint32_t val1 = eval(p, op_pos-1, success);
-  uint32_t val2 = eval(op_pos+1, q, success);
+    // 更新dominant operator（优先级最低且最右侧）
+    if (current_prio <= min_prio) {
+      min_prio = current_prio;
+      op_pos = i;
+    }
+  }
 
+  if (op_pos == -1) {
+    *success = false;
+    return 0;
+  }
+
+  // 递归求值左右子表达式
+  uint32_t val1 = eval(p, op_pos - 1, success);
+  uint32_t val2 = eval(op_pos + 1, q, success);
+
+  // 计算结果
   switch (tokens[op_pos].type) {
     case '+': return val1 + val2;
     case '-': return val1 - val2;
     case '*': return val1 * val2;
     case '/': 
-      if (val2 == 0) { *success = false; return 0; }//不能除以0
+      if (val2 == 0) { *success = false; return 0; }
       return val1 / val2;
-    default: 
-      *success = false; return 0;
+    default:
+      *success = false;
+      return 0;
   }
- }
- return 0; 
 }
 
 uint32_t expr(char *e, bool *success) {

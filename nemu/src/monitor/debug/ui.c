@@ -12,6 +12,8 @@ static int cmd_si(char *args) ;
 static int cmd_info(char *args);
 static int cmd_x(char *args);
 static int cmd_p(char *args);
+static int cmd_w(char *args);
+static int cmd_d(char *args);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
@@ -57,6 +59,8 @@ static struct {
   { "info", "Print program status", cmd_info },
   { "x", "Scan memory", cmd_x },
   {"p", "Evaluate expression", cmd_p},
+{"w", "Set watchpoint", cmd_w},
+{"d", "Delete watchpoint", cmd_d},
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
@@ -141,10 +145,13 @@ static int cmd_info(char *args)
         printf("eip: 0x%08x\n", cpu.eip);
         return 0;
     }
-  else if (strcmp(arg, "w") == 0) {
-    // Print watchpoint information
-    printf("Watchpoints not implemented.\n");
-  } 
+  else if (strcmp(arg, "w") == 0)  {
+        WP *wp = head; // 现在head已正确声明
+        while (wp) {
+            printf("Watchpoint %d: %s = %u\n", wp->NO, wp->expr, wp->old_val);
+            wp = wp->next;
+        }
+    }//补全了打印监视点
   else {
     printf("Unknown info subcommand '%s'\n,retry", arg);
   }
@@ -197,6 +204,34 @@ static int cmd_p(char *args) {
     } else {
         printf("Invalid expression: %s\n", args);
     }
+    return 0;
+}
+
+static int cmd_w(char *args) {
+    WP *wp = new_wp();
+    strncpy(wp->expr, args, sizeof(wp->expr)-1);
+    wp->expr[sizeof(wp->expr)-1] = '\0';
+    
+    bool success;
+    wp->old_val = expr(args, &success);
+    if (!success) {
+        free_wp(wp);
+        printf("Invalid expression\n");
+    }
+    return 0;
+}
+
+static int cmd_d(char *args) {
+    int no = atoi(args);
+    WP *wp = head;
+    while (wp) {
+        if (wp->NO == no) {
+            free_wp(wp);
+            return 0;
+        }
+        wp = wp->next;
+    }
+    printf("No watchpoint number %d\n", no);
     return 0;
 }
 

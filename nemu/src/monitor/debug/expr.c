@@ -218,7 +218,7 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 		default: continue;
 	}
 
-	if (current_prio <= min_prio) { // 正确逻辑
+	if (current_prio <= min_prio) {  // 正确逻辑
 		min_prio = current_prio;
 		op_pos = i;
 		}

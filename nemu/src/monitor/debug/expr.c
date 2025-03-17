@@ -247,20 +247,15 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
         op_pos = i;
     }
 	}
-
+	
+	if (op_pos != -1 && is_unary_minus(op_pos)) {
+		  // 处理单目负号
+		  uint32_t val = eval(op_pos + 1, q, success);
+		  return -val;
+	}
   if (op_pos == -1) { *success = false; return 0; }
- 
   uint32_t val1 = eval(p, op_pos-1, success);
   uint32_t val2 = eval(op_pos+1, q, success);
-  
-  if (op_pos != -1 && is_unary_minus(op_pos)) {
-    // 处理单目负号
-    uint32_t val = eval(op_pos + 1, q, success);
-    return -val;
-} else if (is_unary_minus(op_pos)) {
-      uint32_t val = eval(op_pos + 1, q, success);
-      return (uint32_t)(-(int32_t)val);
-  }
 
   switch (tokens[op_pos].type) {
     case '+': return val1 + val2;

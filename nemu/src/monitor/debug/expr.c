@@ -158,7 +158,7 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
   if (p > q || !*success) { *success = false; return 0; }
   if (is_unary_minus(p)) {
      uint32_t val = eval(p+1, q, success);
-     return (uint32_t)(-(int32_t)val);  // 注意处理补码转换
+     return -(int32_t)val;  // 注意处理补码转换//补个屁
   }
   if (tokens[p].type == TK_DEREF) {
     if (p + 1 > q) { *success = false; return 0; } 

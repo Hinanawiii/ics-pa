@@ -29,10 +29,10 @@ static struct rule {
   {"\\$[a-zA-Z]+", TK_REG},  // 寄存器表达式 
   {"0x[0-9a-fA-F]+", TK_HEX}, 
   {"[0-9]+", TK_NUM},
-  {"\\*", TK_DEREF},        // 解引用运算符（单目，优先级高于乘法）
+  //{"\\*", TK_DEREF},        // 解引用运算符（单目，优先级高于乘法）
   {"\\+", '+'},         // plus
   {"-", '-'},
-  {"\\*", '*'}, 
+  {"\\*", '*'}, 				//乘法或解引用（看是否单目）
   {"/", '/'},
   {"\\(", '('},         
   {"\\)", ')'},
@@ -152,7 +152,14 @@ static bool is_unary_minus(int pos) {
     return (prev_type == '(' || prev_type == '+' || prev_type == '-' || 
             prev_type == '*' || prev_type == '/');
 }
-
+static bool is_unary_deref(int pos) {
+    if (tokens[pos].type != '*') return false;
+    // 判断是否是表达式开头或前一个token为运算符/左括号
+    if (pos == 0) return true;
+    int prev_type = tokens[pos - 1].type;
+    return (prev_type == '(' || prev_type == '+' || prev_type == '-' || 
+            prev_type == '*' || prev_type == '/');
+}
 static uint32_t eval(int p,int q,bool *success)//改了一点模板
 {
   if (p > q || !*success) { *success = false; return 0; }
@@ -233,8 +240,8 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
     if (tokens[i].type == '-' && is_unary_minus(i)) {
         current_prio = 4; // 单目负号优先级
         is_unary = true;
-    } else if (tokens[i].type == TK_DEREF) {
-        current_prio = 4; // 解引用优先级同单目负号
+    } else if (is_unary_deref(i)) {
+        current_prio = 4; // 与单目负号同级
         is_unary = true;
     } else{
 	switch (tokens[i].type) {
@@ -255,11 +262,6 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
     }
 	}
 	
-	if (op_pos != -1 && is_unary_minus(op_pos)) {
-		  // 处理单目负号
-		  uint32_t val = eval(op_pos + 1, q, success);
-		  return -val;
-	}
   if (op_pos == -1) { *success = false; return 0; }
   uint32_t val1 = eval(p, op_pos-1, success);
   uint32_t val2 = eval(op_pos+1, q, success);

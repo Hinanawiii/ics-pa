@@ -143,10 +143,23 @@ static bool check_parentheses(int p, int q, bool *success) {
   }
   return (balance == 0);
 }//简单小算法题
+//辅助函数单目负号判断
+static bool is_unary_minus(int pos) {
+    if (tokens[pos].type != '-') return false;
+    // 判断是否是表达式开头或前一个token为运算符/左括号
+    if (pos == 0) return true;
+    int prev_type = tokens[pos - 1].type;
+    return (prev_type == '(' || prev_type == '+' || prev_type == '-' || 
+            prev_type == '*' || prev_type == '/');
+}
 
 static uint32_t eval(int p,int q,bool *success)//改了一点模板
 {
   if (p > q || !*success) { *success = false; return 0; }
+  if (is_unary_minus(p)) {
+     uint32_t val = eval(p+1, q, success);
+     return (uint32_t)(-(int32_t)val);  // 注意处理补码转换
+  }
   if (tokens[p].type == TK_DEREF) {
     if (p + 1 > q) { *success = false; return 0; } 
     uint32_t addr = eval(p + 1, q, success);
@@ -211,6 +224,9 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
     if (balance != 0) continue;
 
 	int current_prio = -1;
+	     if (is_unary_minus(i)) {
+            current_prio = 4;  // 最高优先级
+        } 
 	switch (tokens[i].type) {
 		case '+': case '-': current_prio = 1; break;
 		case '*': case '/': current_prio = 2; break;
@@ -228,6 +244,11 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
  
   uint32_t val1 = eval(p, op_pos-1, success);
   uint32_t val2 = eval(op_pos+1, q, success);
+  
+  if (is_unary_minus(op_pos)) {
+      uint32_t val = eval(op_pos + 1, q, success);
+      return (uint32_t)(-(int32_t)val);
+  }
 
   switch (tokens[op_pos].type) {
     case '+': return val1 + val2;

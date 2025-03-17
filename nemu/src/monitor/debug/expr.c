@@ -26,17 +26,19 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
-  {"\\+", '+'},         // plus
-  {"==", TK_EQ},         // equal
-  {"-", '-'},
+  {"\\$[a-z]+", TK_REG},  // 寄存器表达式 
+  {"0x[0-9a-fA-F]+", TK_HEX}, 
   {"\\*", TK_DEREF},        // 指针解引用*(必须放在前面)
+  {"[0-9]+", TK_NUM},
+  {"\\+", '+'},         // plus
+  {"-", '-'},
   {"\\*", '*'}, 
   {"/", '/'},
   {"\\(", '('},         
   {"\\)", ')'},
-  {"\\$[a-z]+", TK_REG},  // 寄存器表达式 
-  {"0x[0-9a-fA-F]+", TK_HEX}, 
-  {"[0-9]+", TK_NUM},
+  {"==", TK_EQ},         // equal
+  
+
   
   
 };
@@ -146,8 +148,12 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 {
   if (p > q || !*success) { *success = false; return 0; }
   if (p == q) {
-    if (tokens[p].type == TK_NUM) return atoi(tokens[p].str);
+      switch (tokens[p].type) {
+      case TK_NUM: return atoi(tokens[p].str);
+      case TK_HEX: return strtol(tokens[p].str, NULL, 16);
+      default:
     *success = false; return 0;
+  }
   }
   if (check_parentheses(p, q, success)) return eval(p+1, q-1, success);
   

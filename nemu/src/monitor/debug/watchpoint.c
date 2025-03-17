@@ -50,7 +50,7 @@ void check_watchpoints() {
         uint32_t new_val = expr(wp->expr, &success);
         
         if (success && new_val != wp->old_val) {
-            //nemu_state = NEMU_STOP;
+            nemu_state = NEMU_STOP;
             printf("Watchpoint %d: %s\n", wp->NO, wp->expr);
             printf("Old value = %u\n", wp->old_val);
             printf("New value = %u\n", new_val);

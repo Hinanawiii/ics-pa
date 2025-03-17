@@ -2,6 +2,7 @@
 #define __WATCHPOINT_H__
 
 #include "common.h"
+#include "monitor/monitor.h"
 
 typedef struct watchpoint {
   int NO;

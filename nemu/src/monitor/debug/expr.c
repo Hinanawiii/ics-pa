@@ -13,7 +13,7 @@ enum {
 
 
   /* TODO: Add more token types */
- TK_NUM, 
+ TK_NUM, TK_DEREF,TK_REG,TK_HEX
 };
   
 static struct rule {
@@ -29,11 +29,14 @@ static struct rule {
   {"\\+", '+'},         // plus
   {"==", TK_EQ},         // equal
   {"-", '-'},
+  {"\\*", TK_DEREF},        // 指针解引用*(必须放在前面)
   {"\\*", '*'}, 
   {"/", '/'},
   {"\\(", '('},         
   {"\\)", ')'},
-  {"[0-9]+", TK_NUM}
+  {"\\$[a-z]+", TK_REG},  // 寄存器表达式 
+  {"[0-9]+", TK_NUM},
+  {"0x[0-9a-fA-F]+", TK_HEX}, 
   
 };
 
@@ -93,7 +96,11 @@ static bool make_token(char *e) {
           //default: TODO();
            case TK_NOTYPE: 
    		 break;
+
 	   case TK_NUM:
+	       		case TK_DEREF:
+				case TK_HEX:
+   		  case TK_REG:
   	   case '+': case '-': case '*': case '/':
  	   case '(': case ')':
            if (nr_token >= 32)
@@ -105,6 +112,7 @@ static bool make_token(char *e) {
            tokens[nr_token].str[substr_len] = '\0';
            nr_token++;
                 break;
+
 	   default:
     		panic("Unexpected token");
         }

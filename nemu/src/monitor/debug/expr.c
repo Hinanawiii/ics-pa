@@ -28,11 +28,11 @@ static struct rule {
   {" +", TK_NOTYPE},    // spaces
   {"\\$[a-zA-Z]+", TK_REG},  // 寄存器表达式 
   {"0x[0-9a-fA-F]+", TK_HEX}, 
-  {"\\*", TK_DEREF},        // 指针解引用*(必须放在前面)
   {"[0-9]+", TK_NUM},
   {"\\+", '+'},         // plus
   {"-", '-'},
   {"\\*", '*'}, 
+  {"\\* *(0x[0-9a-fA-F]+|[0-9]+)", TK_DEREF}, // 指针解引用*(必须放在前面)
   {"/", '/'},
   {"\\(", '('},         
   {"\\)", ')'},
@@ -232,7 +232,7 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 	switch (tokens[i].type) {
 		case '+': case '-': current_prio = 1; break;
 		case '*': case '/': current_prio = 2; break;
-		case TK_DEREF: current_prio = 3; break; //优先级最高
+		case TK_DEREF: current_prio = 3; break; 
 		default: continue;
 	}
 	}

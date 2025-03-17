@@ -166,7 +166,7 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
   if (is_unary_minus(p)) {
      uint32_t val = eval(p+1, q, success);
      return -(int32_t)val;  // 注意处理补码转换//补个屁
-  } else if (tokens[p].type == TK_DEREF) {
+  } else if (is_unary_deref(p)) {
         uint32_t addr = eval(p + 1, q, success);
         return vaddr_read(addr, 4);
     }

@@ -29,10 +29,10 @@ static struct rule {
   {"\\$[a-zA-Z]+", TK_REG},  // 寄存器表达式 
   {"0x[0-9a-fA-F]+", TK_HEX}, 
   {"[0-9]+", TK_NUM},
+  {"\\*", TK_DEREF},        // 解引用运算符（单目，优先级高于乘法）
   {"\\+", '+'},         // plus
   {"-", '-'},
   {"\\*", '*'}, 
-  {"\\* *(0x[0-9a-fA-F]+|[0-9]+)", TK_DEREF}, // 指针解引用*(必须放在前面)
   {"/", '/'},
   {"\\(", '('},         
   {"\\)", ')'},
@@ -160,11 +160,13 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
      uint32_t val = eval(p+1, q, success);
      return -(int32_t)val;  // 注意处理补码转换//补个屁
   }
+  /*
   if (tokens[p].type == TK_DEREF) {
     if (p + 1 > q) { *success = false; return 0; } 
     uint32_t addr = eval(p + 1, q, success);
     return vaddr_read(addr, 4);
   }
+    */
   if (p == q) {
       switch (tokens[p].type) {
       case TK_NUM: return atoi(tokens[p].str);
@@ -232,7 +234,7 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 	switch (tokens[i].type) {
 		case '+': case '-': current_prio = 1; break;
 		case '*': case '/': current_prio = 2; break;
-		case TK_DEREF: current_prio = 3; break; 
+		//case TK_DEREF: current_prio = 3; break; 
 		default: continue;
 	}
 	}

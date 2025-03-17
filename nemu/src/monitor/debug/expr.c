@@ -253,7 +253,11 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
   uint32_t val1 = eval(p, op_pos-1, success);
   uint32_t val2 = eval(op_pos+1, q, success);
   
-  if (is_unary_minus(op_pos)) {
+  if (op_pos != -1 && is_unary_minus(op_pos)) {
+    // 处理单目负号
+    uint32_t val = eval(op_pos + 1, q, success);
+    return -val;
+} else if (is_unary_minus(op_pos)) {
       uint32_t val = eval(op_pos + 1, q, success);
       return (uint32_t)(-(int32_t)val);
   }

@@ -26,7 +26,7 @@ static struct rule {
    */
 
   {" +", TK_NOTYPE},    // spaces
-  {"\\$[a-z]+", TK_REG},  // 寄存器表达式 
+  {"\\$[a-zA-Z]+", TK_REG},  // 寄存器表达式 
   {"0x[0-9a-fA-F]+", TK_HEX}, 
   {"\\*", TK_DEREF},        // 指针解引用*(必须放在前面)
   {"[0-9]+", TK_NUM},
@@ -151,6 +151,52 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
       switch (tokens[p].type) {
       case TK_NUM: return atoi(tokens[p].str);
       case TK_HEX: return strtol(tokens[p].str, NULL, 16);
+      case TK_DEREF: 
+      {
+    		uint32_t addr = eval(p+1, q, success);
+    		return vaddr_read(addr, 4);
+			}
+			case TK_REG: {
+    const char *reg_name = tokens[p].str + 1; // 去掉 '$'
+    bool found = false;
+    uint32_t value = 0;
+    
+    // 遍历所有可能的寄存器名称列表
+    for (int i = 0; i < 8; i++) {
+        // 检查32位寄存器（eax, ecx...）
+        if (strcmp(reg_name, regsl[i]) == 0) {
+            value = reg_l(i);
+            found = true;
+            break;
+        }
+        // 检查16位寄存器（ax, cx...）
+        if (strcmp(reg_name, regsw[i]) == 0) {
+            value = reg_w(i);
+            found = true;
+            break;
+        }
+        // 检查8位寄存器（al, ah...）
+        if (i < 4) {
+            if (strcmp(reg_name, regsb[i]) == 0) { // 低8位（al, cl...）
+                value = reg_b(i);
+                found = true;
+                break;
+            }
+        } else {
+            if (strcmp(reg_name, regsb[i]) == 0) { // 高8位（ah, ch...）
+                value = reg_b(i);
+                found = true;
+                break;
+            }
+        }
+    }
+    
+    if (!found) {
+        *success = false;
+        printf("Unknown register: %s\n", reg_name);
+    }
+    return value;
+}
       default:
     *success = false; return 0;
   }

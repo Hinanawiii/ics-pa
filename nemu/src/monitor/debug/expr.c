@@ -248,7 +248,7 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 		case '+': case '-': current_prio = 1; break;
 		case '*': case '/': current_prio = 2; break;
 		default: continue;
-	}
+	 }
 	}
 
     if (is_unary) {

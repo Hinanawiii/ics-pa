@@ -147,15 +147,15 @@ static bool check_parentheses(int p, int q, bool *success) {
 static uint32_t eval(int p,int q,bool *success)//改了一点模板
 {
   if (p > q || !*success) { *success = false; return 0; }
+  if (tokens[p].type == TK_DEREF) {
+    if (p + 1 > q) { *success = false; return 0; } 
+    uint32_t addr = eval(p + 1, q, success);
+    return vaddr_read(addr, 4);
+  }
   if (p == q) {
       switch (tokens[p].type) {
       case TK_NUM: return atoi(tokens[p].str);
       case TK_HEX: return strtol(tokens[p].str, NULL, 16);
-      case TK_DEREF: 
-      {
-    		uint32_t addr = eval(p+1, q, success);
-    		return vaddr_read(addr, 4);
-			}
 			case TK_REG: {
     const char *reg_name = tokens[p].str + 1; // 去掉 '$'
     bool found = false;
@@ -214,6 +214,7 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 	switch (tokens[i].type) {
 		case '+': case '-': current_prio = 1; break;
 		case '*': case '/': current_prio = 2; break;
+		case TK_DEREF: current_prio = 3; break; //优先级最高
 		default: continue;
 	}
 

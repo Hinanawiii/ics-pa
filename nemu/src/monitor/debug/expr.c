@@ -228,12 +228,13 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 	     if (is_unary_minus(i)) {
             current_prio = 4;  // 最高优先级
             is_unary = true;
-        } 
+        } else{
 	switch (tokens[i].type) {
 		case '+': case '-': current_prio = 1; break;
 		case '*': case '/': current_prio = 2; break;
 		case TK_DEREF: current_prio = 3; break; //优先级最高
 		default: continue;
+	}
 	}
 
     if (is_unary) {

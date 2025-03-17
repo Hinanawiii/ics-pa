@@ -159,8 +159,11 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
   if (is_unary_minus(p)) {
      uint32_t val = eval(p+1, q, success);
      return -(int32_t)val;  // 注意处理补码转换//补个屁
-  }
-  /*
+  } else if (tokens[p].type == TK_DEREF) {
+        uint32_t addr = eval(p + 1, q, success);
+        return vaddr_read(addr, 4);
+    }
+  /*s
   if (tokens[p].type == TK_DEREF) {
     if (p + 1 > q) { *success = false; return 0; } 
     uint32_t addr = eval(p + 1, q, success);
@@ -227,14 +230,16 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 
 	int current_prio = -1;
 	bool is_unary = false;//需要这个变量归正运算
-	     if (is_unary_minus(i)) {
-            current_prio = 4;  // 最高优先级
-            is_unary = true;
-        } else{
+    if (tokens[i].type == '-' && is_unary_minus(i)) {
+        current_prio = 4; // 单目负号优先级
+        is_unary = true;
+    } else if (tokens[i].type == TK_DEREF) {
+        current_prio = 4; // 解引用优先级同单目负号
+        is_unary = true;
+    } else{
 	switch (tokens[i].type) {
 		case '+': case '-': current_prio = 1; break;
 		case '*': case '/': current_prio = 2; break;
-		//case TK_DEREF: current_prio = 3; break; 
 		default: continue;
 	}
 	}

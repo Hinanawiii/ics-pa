@@ -224,8 +224,10 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
     if (balance != 0) continue;
 
 	int current_prio = -1;
+	bool is_unary = false;//需要这个变量归正运算
 	     if (is_unary_minus(i)) {
             current_prio = 4;  // 最高优先级
+            is_unary = true;
         } 
 	switch (tokens[i].type) {
 		case '+': case '-': current_prio = 1; break;
@@ -234,10 +236,15 @@ static uint32_t eval(int p,int q,bool *success)//改了一点模板
 		default: continue;
 	}
 
-	if (current_prio <= min_prio) {  // 正确逻辑
-		min_prio = current_prio;
-		op_pos = i;
-		}
+    if (is_unary) {
+        // 单目运算符直接选择最左侧的负号
+        op_pos = i;
+        min_prio = current_prio;
+        break; // 单目负号优先级最高，无需继续查找
+    } else if (current_prio <= min_prio) {
+        min_prio = current_prio;
+        op_pos = i;
+    }
 	}
 
   if (op_pos == -1) { *success = false; return 0; }

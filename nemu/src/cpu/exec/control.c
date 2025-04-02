@@ -25,7 +25,6 @@ make_EHelper(jmp_rm) {
 
 make_EHelper(call) {
   // the target address is calculated at the decode stage
-  TODO();
   vaddr_t current_eip = *eip;
 	uint32_t raw_rel32 = vaddr_read(current_eip + 1, 4);
 	int32_t rel32 = (int32_t)raw_rel32;
@@ -49,6 +48,5 @@ make_EHelper(ret) {
 
 make_EHelper(call_rm) {//暂时保留
   TODO();
-
   print_asm("call *%s", id_dest->str);
 }

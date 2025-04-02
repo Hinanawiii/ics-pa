@@ -106,6 +106,10 @@ static inline make_DopHelper(O) {
 #endif
 }
 
+make_DHelper(none) {
+  // 无操作数需要解码
+}
+
 /* Eb <- Gb
  * Ev <- Gv
  */

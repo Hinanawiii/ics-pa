@@ -4,18 +4,19 @@ make_EHelper(mov) {
   operand_write(id_dest, &id_src->val);
   print_asm_template2(mov);
 }
-
+//为了防止其他形式，这些先保留
 make_EHelper(push) {
-  TODO();
-
+  uint8_t reg = decoding.opcode & 0x7;
+  rtl_push(&reg_l(reg));
   print_asm_template1(push);
 }
 
 make_EHelper(pop) {
-  TODO();
-
+  uint8_t reg = decoding.opcode & 0x7;
+  rtl_pop(&reg_l(reg));
   print_asm_template1(pop);
 }
+
 
 make_EHelper(pusha) {
   TODO();

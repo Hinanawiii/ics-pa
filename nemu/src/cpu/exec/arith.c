@@ -7,10 +7,24 @@ make_EHelper(add) {
 }
 
 make_EHelper(sub) {
-  TODO();
+  read_ModR_M(eip, id_src, true, id_dest, true);
+  rtl_update_ZFSF(&id_dest->val, id_dest->width);
+  
+  // 计算CF和OF（注意参数顺序）
+  rtlreg_t src1, src2;
+  rtl_mv(&src1, &id_src->val);   // src2_val
+  rtl_mv(&src2, &id_dest->val);  // src1_val（原值）
+  
+  rtl_set_CF_sub(&src2, &src1);  // CF = (src1_val < src2_val)
+  rtl_set_OF_sub(&src2, &src1, &id_dest->val);
 
+  // 写回
+  operand_write(id_dest, &id_dest->val);
+  
   print_asm_template2(sub);
 }
+
+
 
 make_EHelper(cmp) {
   TODO();

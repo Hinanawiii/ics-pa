@@ -56,6 +56,7 @@ make_EHelper(pop);
 make_EHelper(ret);
 make_EHelper(call);
 make_EHelper(jmp);
+make_EHelper(nop);
 make_EHelper(none);
 
 

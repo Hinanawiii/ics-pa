@@ -44,10 +44,6 @@ make_EHelper(ret) {
   print_asm("ret");
 }
 
-make_EHelper(nop) {
-  print_asm("nop");
-}
-
 make_EHelper(call_rm) {//暂时保留
   TODO();
   print_asm("call *%s", id_dest->str);

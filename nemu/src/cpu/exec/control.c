@@ -28,11 +28,11 @@ make_EHelper(call) {
   vaddr_t current_eip = *eip;
 	uint32_t raw_rel32 = vaddr_read(current_eip+1 , 3);
 	int32_t rel32 = (int32_t)raw_rel32;
-  decoding.jmp_eip = current_eip + 5 + rel32;
-  vaddr_t ret_addr = current_eip + 5;
+  decoding.jmp_eip = current_eip + 4 + rel32;
+  vaddr_t ret_addr = current_eip + 4;
   rtl_push(&ret_addr);
   
-  *eip += 5;
+  *eip += 4;
   
   decoding.is_jmp = 1;
 	print_asm("call 0x%x", decoding.jmp_eip);

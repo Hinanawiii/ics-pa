@@ -228,11 +228,8 @@ void exec_wrapper(bool print_flag) {
   decoding.p = decoding.asm_buf;
   decoding.p += sprintf(decoding.p, "%8x:   ", cpu.eip);
 #endif
-  vaddr_t before_eip = decoding.seq_eip;
   decoding.seq_eip = cpu.eip;
   exec_real(&decoding.seq_eip);
-	printf("指令执行: seq_eip从0x%x变为0x%x (增加了%d字节)\n", 
-       before_eip, decoding.seq_eip, decoding.seq_eip - before_eip);
 #ifdef DEBUG
   int instr_len = decoding.seq_eip - cpu.eip;
   sprintf(decoding.p, "%*.s", 50 - (12 + 3 * instr_len), "");

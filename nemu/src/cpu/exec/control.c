@@ -18,7 +18,7 @@ make_EHelper(jmp_rm) {
   decoding.jmp_eip = id_dest->val;
   decoding.is_jmp = 1;
   print_asm("jmp *%s", id_dest->str);
-  printf("Indirect jump/call to address 0x%x\n", id_dest->val);
+  //printf("Indirect jump/call to address 0x%x\n", id_dest->val);
 }
 
 make_EHelper(call) {
@@ -64,5 +64,5 @@ make_EHelper(call_rm) {
   decoding.jmp_eip = id_dest->val;  
   decoding.is_jmp = 1;
   print_asm("call *%s", id_dest->str);
-  printf("Indirect jump/call to address 0x%x\n", id_dest->val);
+  //printf("Indirect jump/call to address 0x%x\n", id_dest->val);
 }

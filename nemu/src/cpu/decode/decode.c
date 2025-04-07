@@ -29,7 +29,8 @@ static inline make_DopHelper(I) {
 /* sign immediate */
 static inline make_DopHelper(SI) {
   assert(op->width == 1 || op->width == 4);
-
+  vaddr_t orig_eip = *eip;
+  printf("SI解码开始: EIP=0x%x, 宽度=%d\n", orig_eip, op->width);
   op->type = OP_TYPE_IMM;
 
   /* TODO: Use instr_fetch() to read `op->width' bytes of memory
@@ -40,12 +41,14 @@ static inline make_DopHelper(SI) {
    */
   uint32_t imm = instr_fetch(eip, op->width);
   // 如果是1字节宽度，进行符号扩展
+   printf("instr_fetch后: EIP=0x%x (增加了%d)\n", *eip, *eip - orig_eip);
   if (op->width == 1) {
     op->simm = (int32_t)(int8_t)imm;
   } else {
     op->simm = (int32_t)imm;
   }
   rtl_li(&op->val, op->simm);
+   printf("SI解码结束: EIP=0x%x (总增加了%d)\n", *eip, *eip - orig_eip);
 
 #ifdef DEBUG
   snprintf(op->str, OP_STR_SIZE, "$0x%x", op->simm);

@@ -59,5 +59,12 @@ make_EHelper(jmp);
 make_EHelper(none);
 make_EHelper(nop);
 
+make_EHelper(lea);
+make_EHelper(leave);
+
+make_EHelper(cwtl);
+make_EHelper(cltd);
+make_EHelper(movzx);
+make_EHelper(movsx);
 
 #endif

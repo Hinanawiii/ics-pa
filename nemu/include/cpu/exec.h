@@ -95,7 +95,7 @@ make_EHelper(sar);
 make_EHelper(setcc);
 make_EHelper(test);
 
-
-
+make_EHelper(in);
+make_EHelper(out);
 
 #endif

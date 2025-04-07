@@ -7,6 +7,8 @@
 #define CH_OFFSET 0
 #define LSR_OFFSET 5		/* line status register */
 
+extern uint8_t pio_space[];
+
 static uint8_t *serial_port_base;
 
 void serial_io_handler(ioaddr_t addr, int len, bool is_write) {
@@ -20,7 +22,13 @@ void serial_io_handler(ioaddr_t addr, int len, bool is_write) {
         fflush(stdout);
       }
     }
-  }
+  }else {
+    // 处理读操作（返回设备状态）
+    if (addr == SERIAL_PORT + LSR_OFFSET) {
+      // 强制设置状态寄存器为0x20（发送缓冲区空）
+      memcpy(pio_space + addr, &serial_port_base[LSR_OFFSET], len);
+    }
+   }
 }
 
 void init_serial() {

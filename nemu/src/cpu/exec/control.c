@@ -12,14 +12,12 @@ make_EHelper(jcc) {
   uint8_t subcode = decoding.opcode & 0xf;
   rtl_setcc(&t2, subcode);
   decoding.is_jmp = t2;
-
   print_asm("j%s %x", get_cc_name(subcode), decoding.jmp_eip);
 }
 
 make_EHelper(jmp_rm) {
   decoding.jmp_eip = id_dest->val;
   decoding.is_jmp = 1;
-
   print_asm("jmp *%s", id_dest->str);
 }
 
@@ -31,9 +29,7 @@ make_EHelper(call) {
   decoding.jmp_eip = current_eip + 4 + rel32;
   vaddr_t ret_addr = current_eip + 4;
   rtl_push(&ret_addr);
-  
   *eip += 4;
-  
   decoding.is_jmp = 1;
 	print_asm("call 0x%x", decoding.jmp_eip);
 }
@@ -44,7 +40,9 @@ make_EHelper(ret) {
   print_asm("ret");
 }
 
-make_EHelper(call_rm) {//暂时保留
-  TODO();
+make_EHelper(call_rm) {
+  rtl_push(eip + 2);  // 保存返回地址（当前eip + ModR/M字节长度）
+  decoding.jmp_eip = id_dest->val;  
+  decoding.is_jmp = 1;
   print_asm("call *%s", id_dest->str);
 }

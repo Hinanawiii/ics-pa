@@ -21,16 +21,10 @@ make_EHelper(jmp_rm) {
 }
 
 make_EHelper(call) {
-  // the target address is calculated at the decode stage
-  vaddr_t current_eip = *eip;
-	uint32_t raw_rel32 = vaddr_read(current_eip+1 , 3);
-	int32_t rel32 = (int32_t)raw_rel32;
-  decoding.jmp_eip = current_eip + 4 + rel32;
-  vaddr_t ret_addr = current_eip + 4;
-  rtl_push(&ret_addr);
-  *eip += 4;
+  // 使用解码阶段计算好的目标地址
+  rtl_push(eip + 5);  // 保存下一条指令的地址（假设是32位偏移的call）
   decoding.is_jmp = 1;
-	print_asm("call 0x%x", decoding.jmp_eip);
+  print_asm("call %x", decoding.jmp_eip);
 }
 
 make_EHelper(ret) {

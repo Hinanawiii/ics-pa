@@ -214,8 +214,10 @@ static inline void rtl_set_OF_sub(const rtlreg_t *src_orig, const rtlreg_t *src2
 }
 
 // add相关标志
-static inline void rtl_set_CF_add(const rtlreg_t *result, const rtlreg_t *src1) {
-  cpu.eflags.CF = (*result < *src1);
+static inline void rtl_set_CF_add(const rtlreg_t *result, const rtlreg_t *src1, const rtlreg_t *src2) {
+  // 加法进位：如果结果小于任一输入操作数，则发生进位
+  // 结果必定小于至少一个操作数
+  cpu.eflags.CF = (*result < *src1) || (*result < *src2);
 }
 
 static inline void rtl_set_OF_add(const rtlreg_t *src1, const rtlreg_t *src2, const rtlreg_t *result) {

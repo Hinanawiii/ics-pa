@@ -6,8 +6,8 @@ make_EHelper(add) {
   //不影响结果（交换律）
   // 更新标志位
   rtl_update_ZFSF(&t0, id_dest->width);
-  rtl_set_CF_add(&t0, &id_dest->val);
-  rtl_set_OF_add(&t0, &id_dest->val, &id_src->val);
+  rtl_set_CF_add(&t0, &id_dest->val, &id_src->val); 
+  rtl_set_OF_add(&id_dest->val, &id_src->val, &t0); // 正确
 
   print_asm_template2(add);
 }

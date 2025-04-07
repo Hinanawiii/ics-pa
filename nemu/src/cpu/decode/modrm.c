@@ -2,8 +2,7 @@
 #include "cpu/rtl.h"
 
 void load_addr(vaddr_t *eip, ModR_M *m, Operand *rm) {
-	vaddr_t orig_eip = *eip;
-	printf("load_addr开始: EIP=0x%x, mod=%d, R_M=%d\n", *eip, m->mod, m->R_M);
+//printf("load_addr开始: EIP=0x%x, mod=%d, R_M=%d\n", *eip, m->mod, m->R_M);
   assert(m->mod != 3);
 
   int32_t disp = 0;
@@ -77,8 +76,6 @@ void load_addr(vaddr_t *eip, ModR_M *m, Operand *rm) {
 #endif
 
   rm->type = OP_TYPE_MEM;
-  printf("load_addr结束: EIP=0x%x (移动了%d字节), disp_size=%d\n", 
-       *eip, (int)(*eip - orig_eip), disp_size);
 }
 
 void read_ModR_M(vaddr_t *eip, Operand *rm, bool load_rm_val, Operand *reg, bool load_reg_val) {

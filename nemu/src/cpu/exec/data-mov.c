@@ -6,12 +6,12 @@ make_EHelper(mov) {
 }
 //为了防止其他形式，这些先保留
 make_EHelper(push) {
-printf("开始执行push指令: EIP=0x%x\n", cpu.eip);
+//printf("开始执行push指令: EIP=0x%x\n", cpu.eip);
   uint8_t reg = decoding.opcode & 0x7;
   rtl_push(&reg_l(reg));
 
   print_asm_template1(push);
-  printf("执行完push指令: EIP=0x%x\n", cpu.eip);
+  //printf("执行完push指令: EIP=0x%x\n", cpu.eip);
 }
 
 make_EHelper(push_rm) {

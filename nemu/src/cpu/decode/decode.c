@@ -212,11 +212,11 @@ make_DHelper(SI2E) {
 //  vaddr_t orig_eip = *eip;
 //  printf("SI2E开始解码，EIP=0x%x\n", orig_eip);
   
-  // 打印当前位置的几个字节，了解指令格式
+/*  // 打印当前位置的几个字节，了解指令格式
   for(int i=0; i<5; i++) {
     uint8_t byte = vaddr_read(*eip + i, 1);
     printf("  EIP+%d 字节: 0x%02x\n", i, byte);
-  }
+  }*/
   
   assert(id_dest->width == 2 || id_dest->width == 4);
   

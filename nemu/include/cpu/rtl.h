@@ -144,6 +144,16 @@ static inline void rtl_sext(rtlreg_t* dest, const rtlreg_t* src1, int width) {
   }
 }
 
+static inline void rtl_zext(rtlreg_t* dest, const rtlreg_t* src1, int width) {
+  // dest <- zeroext(src1[(width * 8 - 1) .. 0])
+  switch (width) {
+    case 1: *dest = *(uint8_t*)src1; break;
+    case 2: *dest = *(uint16_t*)src1; break;
+    case 4: *dest = *src1; break;
+    default: assert(0);
+  }
+}
+
 static inline void rtl_push(const rtlreg_t* src1) {
   // esp <- esp - 4
   // M[esp] <- src1

@@ -54,7 +54,7 @@ make_EHelper(in) {
     port_val = pio_read(id_src->val, id_dest->width);
   }
   
-  printf("Reading port 0x%x, width %d, value 0x%x\n", id_src->val, id_dest->width, port_val);
+  //printf("Reading port 0x%x, width %d, value 0x%x\n", id_src->val, id_dest->width, port_val);
   
   rtl_li(&t0, port_val);
   operand_write(id_dest, &t0);

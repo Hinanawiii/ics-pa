@@ -60,7 +60,7 @@ make_EHelper(ret) {
 }
 
 make_EHelper(call_rm) {
-  rtl_push(eip + 2);  // 保存返回地址（当前eip + ModR/M字节长度）
+  rtl_push(eip + decoding.seq_eip - *eip);   // 保存返回地址（当前eip + ModR/M字节长度）
   decoding.jmp_eip = id_dest->val;  
   decoding.is_jmp = 1;
   print_asm("call *%s", id_dest->str);

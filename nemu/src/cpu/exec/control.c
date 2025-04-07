@@ -30,7 +30,7 @@ make_EHelper(call) {
   
   // 计算目标地址和返回地址
   vaddr_t target_addr = current_eip + 4 + rel32;
-  vaddr_t ret_addr = current_eip + 5;
+  vaddr_t ret_addr = current_eip + 4;
   
   // 打印调试信息
   printf("CALL调试信息:\n");

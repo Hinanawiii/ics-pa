@@ -9,8 +9,9 @@ make_EHelper(push) {
 printf("开始执行push指令: EIP=0x%x\n", cpu.eip);
   uint8_t reg = decoding.opcode & 0x7;
   rtl_push(&reg_l(reg));
-  printf("执行完push指令: EIP=0x%x\n", cpu.eip);
+
   print_asm_template1(push);
+  printf("执行完push指令: EIP=0x%x\n", cpu.eip);
 }
 
 make_EHelper(pop) {

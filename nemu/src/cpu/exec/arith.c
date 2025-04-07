@@ -1,7 +1,13 @@
 #include "cpu/exec.h"
 
 make_EHelper(add) {
-  TODO();
+  rtl_add(&t0, &id_dest->val, &id_src->val);
+  operand_write(id_dest, &t0);
+  //不影响结果（交换律）
+  // 更新标志位
+  rtl_update_ZFSF(&t0, id_dest->width);
+  rtl_set_CF_add(&t0, &id_dest->val);
+  rtl_set_OF_add(&t0, &id_dest->val, &id_src->val);
 
   print_asm_template2(add);
 }
@@ -27,25 +33,48 @@ make_EHelper(sub) {
 
 
 make_EHelper(cmp) {
-  TODO();
+
+  rtl_sub(&t0, &id_dest->val, &id_src->val);
+  
+  // 更新标志位但不写回
+  rtl_update_ZFSF(&t0, id_dest->width);
+  rtl_set_CF_sub(&id_dest->val, &id_src->val);
+  rtl_set_OF_sub(&id_dest->val, &id_src->val, &t0);
 
   print_asm_template2(cmp);
 }
 
 make_EHelper(inc) {
-  TODO();
 
+  rtl_li(&t0, 1);
+  rtl_add(&t0, &id_dest->val, &t0);
+  operand_write(id_dest, &t0);
+  
+  // 更新标志位（不影响CF）
+  rtl_update_ZFSF(&t0, id_dest->width);
+  rtl_set_OF_add(&t0, &id_dest->val, &tzero);
   print_asm_template1(inc);
 }
 
 make_EHelper(dec) {
-  TODO();
+  rtl_li(&t0, 1);
+  rtl_sub(&t0, &id_dest->val, &t0);
+  operand_write(id_dest, &t0);
+  
+  // 更新标志位（不影响CF）
+  rtl_update_ZFSF(&t0, id_dest->width);
+  rtl_set_OF_sub(&id_dest->val, &tzero, &t0);
 
   print_asm_template1(dec);
 }
 
 make_EHelper(neg) {
-  TODO();
+  rtl_sub(&t0, &tzero, &id_dest->val);
+  operand_write(id_dest, &t0);
+  
+  rtl_update_ZFSF(&t0, id_dest->width);
+  rtl_set_CF_neg(&id_dest->val); 
+  rtl_set_OF_neg(&id_dest->val);
 
   print_asm_template1(neg);
 }

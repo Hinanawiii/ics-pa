@@ -203,4 +203,22 @@ static inline void rtl_set_OF_sub(const rtlreg_t *src_orig, const rtlreg_t *src2
   cpu.eflags.OF = ((*src_orig ^ *result) & (*src_orig ^ *src2)) >> 31;
 }
 
+// add相关标志
+static inline void rtl_set_CF_add(const rtlreg_t *result, const rtlreg_t *src1) {
+  cpu.eflags.CF = (*result < *src1);
+}
+
+static inline void rtl_set_OF_add(const rtlreg_t *src1, const rtlreg_t *src2, const rtlreg_t *result) {
+  cpu.eflags.OF = (~(*src1 ^ *src2) & (*src1 ^ *result)) >> (sizeof(rtlreg_t) * 8 - 1);
+}
+
+//neg
+static inline void rtl_set_CF_neg(const rtlreg_t *src) {
+  cpu.eflags.CF = (*src != 0);
+}
+
+// OF = (操作数是 INT_MIN 0x80000000)
+static inline void rtl_set_OF_neg(const rtlreg_t *src) {
+  cpu.eflags.OF = (*src == 0x80000000);
+}
 #endif

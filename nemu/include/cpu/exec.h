@@ -50,7 +50,16 @@ static inline const char* get_cc_name(int subcode) {
 #define print_asm_template3(instr) \
   print_asm(str(instr) "%c %s,%s,%s", suffix_char(id_dest->width), id_src->str, id_src2->str, id_dest->str)
 
+make_EHelper(add);
 make_EHelper(sub);
+make_EHelper(or);
+make_EHelper(adc);
+make_EHelper(sbb);
+make_EHelper(xor);
+make_EHelper(and);
+make_EHelper(cmp);
+
+
 make_EHelper(push);
 make_EHelper(pop);
 make_EHelper(ret);

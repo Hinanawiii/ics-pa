@@ -19,6 +19,8 @@ make_EHelper(jmp_rm) {
   decoding.is_jmp = 1;
   print_asm("jmp *%s", id_dest->str);
   printf("Indirect jump/call to address 0x%x\n", id_dest->val);
+  rtlreg_t addr = vaddr_read(id_dest->addr, 4);
+	printf("Reading function pointer from 0x%x, got value 0x%x\n", id_dest->addr, addr);
 }
 
 make_EHelper(call) {
@@ -64,5 +66,7 @@ make_EHelper(call_rm) {
   decoding.jmp_eip = id_dest->val;  
   decoding.is_jmp = 1;
   print_asm("call *%s", id_dest->str);
+  rtlreg_t addr = vaddr_read(id_dest->addr, 4);
+	printf("Reading function pointer from 0x%x, got value 0x%x\n", id_dest->addr, addr);
   printf("Indirect jump/call to address 0x%x\n", id_dest->val);
 }

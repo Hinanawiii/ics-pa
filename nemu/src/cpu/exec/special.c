@@ -6,8 +6,8 @@ make_EHelper(nop) {
 }
 
 make_EHelper(lea) {
-  rtl_li(&t0, id_src->addr);  // 加载源操作数的地址（而不是值）
-  operand_write(id_dest, &t0);
+  rtl_li(&t2, id_src->addr);
+  operand_write(id_dest, &t2);
   print_asm_template2(lea);
 }
 

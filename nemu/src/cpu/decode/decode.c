@@ -206,23 +206,42 @@ make_DHelper(test_I) {
 }
 
 make_DHelper(SI2E) {
-  assert(id_dest->width == 2 || id_dest->width == 4);
-  decode_op_rm(eip, id_dest, true, NULL, false);
-  printf("SI2E解码调试:\n");
-  printf("  当前EIP: 0x%x\n", *eip);
-  printf("  目标操作数宽度: %d\n", id_dest->width);
-  id_src->width = 1;
-  printf("  设置源操作数宽度为: %d\n", id_src->width);
+  vaddr_t orig_eip = *eip;
+  printf("SI2E开始解码，EIP=0x%x\n", orig_eip);
   
-  /* 读取一下即将解码的立即数字节 */
+  // 打印当前位置的几个字节，了解指令格式
+  for(int i=0; i<5; i++) {
+    uint8_t byte = vaddr_read(*eip + i, 1);
+    printf("  EIP+%d 字节: 0x%02x\n", i, byte);
+  }
+  
+  assert(id_dest->width == 2 || id_dest->width == 4);
+  
+  // 解码 ModR/M 并追踪 EIP 变化
+  vaddr_t pre_rm_eip = *eip;
+  decode_op_rm(eip, id_dest, true, NULL, false);
+  printf("  ModR/M解码后 EIP 从 0x%x 变为 0x%x (移动了 %d 字节)\n", 
+         pre_rm_eip, *eip, (int)(*eip - pre_rm_eip));
+  
+  id_src->width = 1;
+  
+  // 解码立即数并追踪 EIP 变化
+  vaddr_t pre_imm_eip = *eip;
   uint8_t imm_byte = vaddr_read(*eip, 1);
-  printf("  即将解码的立即数字节: 0x%02x\n", imm_byte);
-  printf("  解码后的源操作数值: 0x%x\n", id_src->val);
+  printf("  立即数位置: 0x%x, 值: 0x%02x\n", *eip, imm_byte);
+  
   decode_op_SI(eip, id_src, true);
+  printf("  立即数解码后 EIP 从 0x%x 变为 0x%x (移动了 %d 字节)\n", 
+         pre_imm_eip, *eip, (int)(*eip - pre_imm_eip));
+  
+  printf("  解码后的源操作数值: 0x%x\n", id_src->val);
+  
   if (id_dest->width == 2) {
     id_src->val &= 0xffff;
-    printf("  16位掩码后的源操作数值: 0x%x\n", id_src->val);
   }
+  
+  printf("SI2E解码完成，最终 EIP=0x%x (总共移动了 %d 字节)\n", 
+         *eip, (int)(*eip - orig_eip));
 }
 
 make_DHelper(SI_E2G) {

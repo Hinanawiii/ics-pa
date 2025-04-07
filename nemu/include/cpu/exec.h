@@ -67,6 +67,7 @@ make_EHelper(idiv);
 
 
 make_EHelper(push);
+make_EHelper(push_rm);
 make_EHelper(pop);
 make_EHelper(leave);
 make_EHelper(cwtl);

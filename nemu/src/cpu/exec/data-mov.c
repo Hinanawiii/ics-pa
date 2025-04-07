@@ -14,6 +14,12 @@ printf("开始执行push指令: EIP=0x%x\n", cpu.eip);
   printf("执行完push指令: EIP=0x%x\n", cpu.eip);
 }
 
+make_EHelper(push_rm) {
+  // 处理内存操作数的push指令
+  rtl_push(&id_dest->val);
+  print_asm_template1(push);
+}
+
 make_EHelper(pop) {
   uint8_t reg = decoding.opcode & 0x7;
   rtl_pop(&reg_l(reg));

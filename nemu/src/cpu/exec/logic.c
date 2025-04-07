@@ -8,7 +8,7 @@ make_EHelper(test) {
   rtl_li(&t1, 0);
   rtl_set_CF(&t1);
   rtl_set_OF(&t1);
-  
+  printf("test result: ZF=%d, n=%d\n", cpu.eflags.ZF, id_dest->val);
   print_asm_template2(test);
 }
 

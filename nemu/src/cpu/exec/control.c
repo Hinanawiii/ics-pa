@@ -25,7 +25,7 @@ make_EHelper(call) {
   vaddr_t current_eip = *eip;
   
   // 读取4字节偏移量
-  uint32_t raw_rel32 = vaddr_read(current_eip + 1, 3);
+  uint32_t raw_rel32 = vaddr_read(current_eip, 4);
   int32_t rel32 = (int32_t)raw_rel32;
   
   // 计算目标地址和返回地址

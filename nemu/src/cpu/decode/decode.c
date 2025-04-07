@@ -208,10 +208,20 @@ make_DHelper(test_I) {
 make_DHelper(SI2E) {
   assert(id_dest->width == 2 || id_dest->width == 4);
   decode_op_rm(eip, id_dest, true, NULL, false);
+  printf("SI2E解码调试:\n");
+  printf("  当前EIP: 0x%x\n", *eip);
+  printf("  目标操作数宽度: %d\n", id_dest->width);
   id_src->width = 1;
+  printf("  设置源操作数宽度为: %d\n", id_src->width);
+  
+  /* 读取一下即将解码的立即数字节 */
+  uint8_t imm_byte = vaddr_read(*eip, 1);
+  printf("  即将解码的立即数字节: 0x%02x\n", imm_byte);
+  printf("  解码后的源操作数值: 0x%x\n", id_src->val);
   decode_op_SI(eip, id_src, true);
   if (id_dest->width == 2) {
     id_src->val &= 0xffff;
+    printf("  16位掩码后的源操作数值: 0x%x\n", id_src->val);
   }
 }
 

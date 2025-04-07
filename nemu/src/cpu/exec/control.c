@@ -23,7 +23,7 @@ make_EHelper(jmp_rm) {
 make_EHelper(call) {
   vaddr_t current_eip = *eip;
   // 正确读取4字节的偏移量
-  uint32_t raw_rel32 = vaddr_read(current_eip+1, 4);
+  uint32_t raw_rel32 = vaddr_read(current_eip+1, 1);
   int32_t rel32 = (int32_t)raw_rel32;
   decoding.jmp_eip = current_eip + 5 + rel32;  // 5 = 操作码1字节 + 偏移量4字节
   

@@ -149,7 +149,17 @@ void difftest_step(uint32_t eip) {
 
   // TODO: Check the registers state with QEMU.
   // Set `diff` as `true` if they are not the same.
-  TODO();
+  const char *reg_names[] = {"eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip"};
+	uint32_t nemu_regs[] = {cpu.eax, cpu.ecx, cpu.edx, cpu.ebx, cpu.esp, cpu.ebp, cpu.esi, cpu.edi, cpu.eip};
+	uint32_t qemu_regs[] = {r.eax, r.ecx, r.edx, r.ebx, r.esp, r.ebp, r.esi, r.edi, r.eip};
+
+	for (int i = 0; i < 9; i++) {
+		if (nemu_regs[i] != qemu_regs[i]) {
+		  diff = true;
+		  Log("Difftest failed at eip = 0x%08x, register %s", eip, reg_names[i]);
+		  Log("QEMU: 0x%08x, NEMU: 0x%08x", qemu_regs[i], nemu_regs[i]);
+		}
+	}
 
   if (diff) {
     nemu_state = NEMU_END;

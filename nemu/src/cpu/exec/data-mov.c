@@ -5,13 +5,19 @@ make_EHelper(mov) {
   print_asm_template2(mov);
 }
 //为了防止其他形式，这些先保留
-make_EHelper(push) {
-//printf("开始执行push指令: EIP=0x%x\n", cpu.eip);
-  uint8_t reg = decoding.opcode & 0x7;
-  rtl_push(&reg_l(reg));
-
-  print_asm_template1(push);
-  //printf("执行完push指令: EIP=0x%x\n", cpu.eip);
+make_EHelper(push)  {
+  // 检查操作码
+  if (decoding.opcode >= 0x50 && decoding.opcode <= 0x57) {
+    // 推送寄存器
+    uint8_t reg = decoding.opcode & 0x7;
+    rtl_push(&reg_l(reg));
+    print_asm("push %%%s", reg_name(reg, 4));
+  } 
+  else if (decoding.opcode == 0x6A || decoding.opcode == 0x68) {
+    // 推送立即数
+    rtl_push(&id_dest->val);
+    print_asm_template1(push);
+  }
 }
 
 make_EHelper(push_rm) {

@@ -38,7 +38,15 @@ static inline make_DopHelper(SI) {
    *
    op->simm = ???
    */
-
+  uint32_t imm = instr_fetch(eip, op->width);
+  // 如果是1字节宽度，进行符号扩展
+  if (op->width == 1) {
+    op->simm = (int32_t)(int8_t)imm;
+  } else {
+    op->simm = (int32_t)imm;
+  }
+  // 更新EIP
+  *eip += op->width;
   rtl_li(&op->val, op->simm);
 
 #ifdef DEBUG

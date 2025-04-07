@@ -33,12 +33,12 @@ make_EHelper(call) {
   vaddr_t ret_addr = current_eip + 5;
   
   // 打印调试信息
-  printf("CALL调试信息:\n");
-  printf("  当前EIP: 0x%x\n", current_eip);
-  printf("  读取到的raw偏移量: 0x%x\n", raw_rel32);
-  printf("  转换为有符号的偏移量: 0x%x (%d)\n", rel32, rel32);
-  printf("  计算后的目标地址: 0x%x\n", target_addr);
-  printf("  返回地址: 0x%x\n", ret_addr);
+  //printf("CALL调试信息:\n");
+  //printf("  当前EIP: 0x%x\n", current_eip);
+  //printf("  读取到的raw偏移量: 0x%x\n", raw_rel32);
+  //printf("  转换为有符号的偏移量: 0x%x (%d)\n", rel32, rel32);
+  //printf("  计算后的目标地址: 0x%x\n", target_addr);
+  //printf("  返回地址: 0x%x\n", ret_addr);
   
   // 设置跳转目标和保存返回地址
   decoding.jmp_eip = target_addr;

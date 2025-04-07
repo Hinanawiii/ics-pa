@@ -13,9 +13,15 @@ make_EHelper(test) {
 }
 
 make_EHelper(and) {
-  rtl_and(&t0, &id_dest->val, &id_src->val);
-  operand_write(id_dest, &t0);
+  printf("AND调试信息:\n");
+  printf("  操作码: 0x%02x\n", decoding.opcode);
+  printf("  目标操作数宽度: %d\n", id_dest->width);
+  printf("  目标操作数值: 0x%x\n", id_dest->val);
+  printf("  源操作数值: 0x%x\n", id_src->val);
   
+  rtl_and(&t0, &id_dest->val, &id_src->val);
+  operand_write(id_dest, &t0); 
+  printf("  执行结果: 0x%x\n", t0);
   rtl_update_ZFSF(&t0, id_dest->width);
   
   rtl_li(&t1, 0);

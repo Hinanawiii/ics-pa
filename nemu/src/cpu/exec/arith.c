@@ -13,19 +13,24 @@ make_EHelper(add) {
 }
 
 make_EHelper(sub) {
-  read_ModR_M(eip, id_src, true, id_dest, true);
-  rtl_update_ZFSF(&id_dest->val, id_dest->width);
+  rtl_sub(&t2, &id_dest->val, &id_src->val);
   
-  // 计算CF和OF（注意参数顺序）
-  rtlreg_t src1, src2;
-  rtl_mv(&src1, &id_src->val);   // src2_val
-  rtl_mv(&src2, &id_dest->val);  // src1_val（原值）
+  // 设置借位标志
+  rtl_sltu(&t3, &id_dest->val, &t2);
+  rtl_set_CF(&t3);
   
-  rtl_set_CF_sub(&src2, &src1);  // CF = (src1_val < src2_val)
-  rtl_set_OF_sub(&src2, &src1, &id_dest->val);
-
-  // 写回
-  operand_write(id_dest, &id_dest->val);
+  // 写回结果
+  operand_write(id_dest, &t2);
+  
+  // 更新标志位
+  rtl_update_ZFSF(&t2, id_dest->width);
+  
+  // 计算溢出标志
+  rtl_xor(&t0, &id_dest->val, &id_src->val);
+  rtl_xor(&t1, &id_dest->val, &t2);
+  rtl_and(&t0, &t0, &t1);
+  rtl_msb(&t0, &t0, id_dest->width);
+  rtl_set_OF(&t0);
   
   print_asm_template2(sub);
 }

@@ -48,7 +48,6 @@ static inline make_DopHelper(SI) {
     op->simm = (int32_t)imm;
   }
   rtl_li(&op->val, op->simm);
-  *eip = *eip - 1;
    printf("SI解码结束: EIP=0x%x (总增加了%d)\n", *eip, *eip - orig_eip);
 
 #ifdef DEBUG

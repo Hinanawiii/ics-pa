@@ -54,15 +54,35 @@ void _draw_rect(const uint32_t *pixels, int x, int y, int w, int h) {
   // 如果矩形完全在屏幕外，直接返回
   if (copy_w <= 0 || copy_h <= 0) return;
   
-  // 计算源像素数组中的偏移
-  int src_offset = (y1 - y) * w + (x1 - x);
+  // 特殊情况：如果没有裁剪，并且矩形宽度等于屏幕宽度，可以一次性复制所有像素
+  if (x1 == 0 && y1 == 0 && copy_w == screen_w && copy_h == screen_h && w == screen_w) {
+    memcpy(fb, pixels, screen_w * screen_h * sizeof(uint32_t));
+    return;
+  }
   
-  // 逐行复制，使用memcpy加速
+  // 特殊情况：如果矩形宽度与源宽度相同，并且与屏幕宽度相同，可以连续复制
+  if (copy_w == w && copy_w == screen_w) {
+    uint32_t *dest = fb + y1 * screen_w;
+    const uint32_t *src = pixels + (y1 - y) * w;
+    memcpy(dest, src, copy_w * copy_h * sizeof(uint32_t));
+    return;
+  }
+  
+  // 如果矩形宽度与源宽度相同，可以优化为更少的memcpy调用
+  if (copy_w == w) {
+    for (int i = 0; i < copy_h; i++) {
+      uint32_t *dest = fb + (y1 + i) * screen_w + x1;
+      const uint32_t *src = pixels + (y1 - y + i) * w;
+      memcpy(dest, src, copy_w * sizeof(uint32_t));
+    }
+    return;
+  }
+  
+  // 标准情况：逐行复制
+  int src_offset = (y1 - y) * w + (x1 - x);
   for (int i = 0; i < copy_h; i++) {
     uint32_t *dest = fb + (y1 + i) * screen_w + x1;
     const uint32_t *src = pixels + src_offset + i * w;
-    
-    // 使用memcpy一次性复制整行像素
     memcpy(dest, src, copy_w * sizeof(uint32_t));
   }
 }

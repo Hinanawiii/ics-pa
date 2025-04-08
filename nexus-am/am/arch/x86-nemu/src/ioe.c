@@ -54,36 +54,45 @@ void _draw_rect(const uint32_t *pixels, int x, int y, int w, int h) {
   // 如果矩形完全在屏幕外，直接返回
   if (copy_w <= 0 || copy_h <= 0) return;
   
-  // 特殊情况：如果没有裁剪，并且矩形宽度等于屏幕宽度，可以一次性复制所有像素
-  if (x1 == 0 && y1 == 0 && copy_w == screen_w && copy_h == screen_h && w == screen_w) {
+  // 特殊情况：如果没有裁剪，并且矩形大小等于屏幕大小，可以一次性复制所有像素
+  if (x == 0 && y == 0 && w == screen_w && h == screen_h) {
     memcpy(fb, pixels, screen_w * screen_h * sizeof(uint32_t));
     return;
   }
   
-  // 特殊情况：如果矩形宽度与源宽度相同，并且与屏幕宽度相同，可以连续复制
-  if (copy_w == w && copy_w == screen_w) {
+  // 特殊情况：如果矩形宽度与源宽度和屏幕宽度都相同，可以连续复制
+  if (x1 == 0 && copy_w == screen_w && w == screen_w) {
     uint32_t *dest = fb + y1 * screen_w;
     const uint32_t *src = pixels + (y1 - y) * w;
     memcpy(dest, src, copy_w * copy_h * sizeof(uint32_t));
     return;
   }
   
-  // 如果矩形宽度与源宽度相同，可以优化为更少的memcpy调用
-  if (copy_w == w) {
+  // 标准情况：使用定长缓冲区优化复制
+  // 定义一个足够大的静态缓冲区，根据你的屏幕最大宽度调整
+  static uint32_t line_buffer[400]; // 假设最大宽度不超过400
+  
+  // 如果矩形太宽，回退到逐行复制
+  if (copy_w > 400) {
+    int src_offset_y = y1 - y;
+    int src_offset_x = x1 - x;
     for (int i = 0; i < copy_h; i++) {
-      uint32_t *dest = fb + (y1 + i) * screen_w + x1;
-      const uint32_t *src = pixels + (y1 - y + i) * w;
-      memcpy(dest, src, copy_w * sizeof(uint32_t));
+      for (int j = 0; j < copy_w; j++) {
+        fb[(y1 + i) * screen_w + x1 + j] = pixels[(src_offset_y + i) * w + src_offset_x + j];
+      }
     }
     return;
   }
   
-  // 标准情况：逐行复制
-  int src_offset = (y1 - y) * w + (x1 - x);
+  // 使用临时缓冲区进行优化复制
   for (int i = 0; i < copy_h; i++) {
-    uint32_t *dest = fb + (y1 + i) * screen_w + x1;
-    const uint32_t *src = pixels + src_offset + i * w;
-    memcpy(dest, src, copy_w * sizeof(uint32_t));
+    // 填充缓冲区
+    for (int j = 0; j < copy_w; j++) {
+      line_buffer[j] = pixels[(y1 - y + i) * w + (x1 - x + j)];
+    }
+    
+    // 一次性复制一行到帧缓冲区
+    memcpy(fb + (y1 + i) * screen_w + x1, line_buffer, copy_w * sizeof(uint32_t));
   }
 }
 

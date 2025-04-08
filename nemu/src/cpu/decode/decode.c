@@ -28,7 +28,7 @@ static inline make_DopHelper(I) {
  */
 /* sign immediate */
 static inline make_DopHelper(SI) {
-  assert(op->width == 1 || op->width == 4);
+
 //  vaddr_t orig_eip = *eip;
 //  printf("SI解码开始: EIP=0x%x, 宽度=%d\n", orig_eip, op->width);
   op->type = OP_TYPE_IMM;

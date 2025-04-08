@@ -4,25 +4,28 @@
 int main(){
   _ioe_init();
   int sec = 1;
-  unsigned long last_time = 0;
+  
+  // 初始输出当前时间
+  printf("Initial uptime: %lu ms\n", _uptime());
   
   while (1) {
-    unsigned long current_time = _uptime();
-    
-    // 打印时间差，看是否正常递增
-    if (current_time > last_time) {
-      printf("Current uptime: %lu ms\n", current_time);
-      last_time = current_time;
+    // 等待到达下一秒
+    while(_uptime() < 1000 * sec) {
+      // 每隔一段时间输出当前时间值
+      if (_uptime() % 100 == 0) {
+        printf("Current uptime: %lu ms, target: %d ms\n", _uptime(), 1000 * sec);
+      }
     }
     
-    while(_uptime() < 1000 * sec) ;
-    
+    // 达到目标时间时输出
+    printf("Reached %d ", sec);
     if (sec == 1) {
-      printf("%d second.\n", sec);
+      printf("second. (uptime: %lu ms)\n", _uptime());
     } else {
-      printf("%d seconds.\n", sec);
+      printf("seconds. (uptime: %lu ms)\n", _uptime());
     }
     sec++;
   }
+  
   return 0;
 }

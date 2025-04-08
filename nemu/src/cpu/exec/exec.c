@@ -219,6 +219,11 @@ make_EHelper(real) {
   idex(eip, &opcode_table[opcode]);
 }
 
+make_EHelper(operand_size) {
+  decoding.is_operand_size_16 = true;
+  print_asm("operand size prefix");
+}
+
 static inline void update_eip(void) {
   cpu.eip = (decoding.is_jmp ? (decoding.is_jmp = 0, decoding.jmp_eip) : decoding.seq_eip);
 }

@@ -44,15 +44,15 @@ void _draw_rect(const uint32_t *pixels, int x, int y, int w, int h) {
   uint32_t *dest = fb + y * screen_w + x;
   
   // 特殊情况：如果矩形宽度等于源宽度和屏幕宽度，可以一次性复制所有像素
-  if (w == screen_w) {
+  //if (w == screen_w) {
     memcpy(dest, pixels, w * h * sizeof(uint32_t));
     return;
-  }
+  //}
   
   // 如果源和目标的宽度相同，可以逐行复制而不需要重新排列
-  for (int i = 0; i < h; i++) {
-    memcpy(dest + i * screen_w, pixels + i * w, w * sizeof(uint32_t));
-  }
+  //for (int i = 0; i < h; i++) {
+  //  memcpy(dest + i * screen_w, pixels + i * w, w * sizeof(uint32_t));
+  //}
 }
 
 void _draw_sync() {

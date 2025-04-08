@@ -11,7 +11,7 @@ int main(){
     
     // 打印时间差，看是否正常递增
     if (current_time > last_time) {
-      _putc('.');  // 每当时间变化就输出一个点
+      printf("Current uptime: %lu ms\n", current_time);
       last_time = current_time;
     }
     

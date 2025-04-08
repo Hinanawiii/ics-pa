@@ -37,29 +37,36 @@ _Screen _screen = {
 extern void* memcpy(void *, const void *, int);
 
 void _draw_rect(const uint32_t *pixels, int x, int y, int w, int h) {
-  int i, j;
   uint32_t *fb = (uint32_t *)(uintptr_t)VMEM;
+  int screen_w = _screen.width;
+  int screen_h = _screen.height;
   
-  // 遍历需要绘制的矩形区域
-  for (i = 0; i < h; i++) {
-    for (j = 0; j < w; j++) {
-      // 计算目标位置
-      int dest_x = x + j;
-      int dest_y = y + i;
-      
-      // 检查坐标是否在屏幕范围内
-      if (dest_x >= 0 && dest_x < _screen.width && 
-          dest_y >= 0 && dest_y < _screen.height) {
-        // 计算源和目标的索引
-        int src_idx = i * w + j;
-        int dest_idx = dest_y * _screen.width + dest_x;
-        
-        // 将像素数据复制到帧缓冲区
-        fb[dest_idx] = pixels[src_idx];
-      }
-    }
+  // 裁剪矩形，确保它在屏幕范围内
+  int x1 = x < 0 ? 0 : x;
+  int y1 = y < 0 ? 0 : y;
+  int x2 = x + w > screen_w ? screen_w : x + w;
+  int y2 = y + h > screen_h ? screen_h : y + h;
+  
+  // 计算裁剪后的宽度和高度
+  int copy_w = x2 - x1;
+  int copy_h = y2 - y1;
+  
+  // 如果矩形完全在屏幕外，直接返回
+  if (copy_w <= 0 || copy_h <= 0) return;
+  
+  // 计算源像素数组中的偏移
+  int src_offset = (y1 - y) * w + (x1 - x);
+  
+  // 逐行复制，使用memcpy加速
+  for (int i = 0; i < copy_h; i++) {
+    uint32_t *dest = fb + (y1 + i) * screen_w + x1;
+    const uint32_t *src = pixels + src_offset + i * w;
+    
+    // 使用memcpy一次性复制整行像素
+    memcpy(dest, src, copy_w * sizeof(uint32_t));
   }
 }
+
 void _draw_sync() {
 }
 

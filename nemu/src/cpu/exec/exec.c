@@ -219,16 +219,13 @@ make_EHelper(real) {
   idex(eip, &opcode_table[opcode]);
 }
 
-make_EHelper(operand_size) {
-  decoding.is_operand_size_16 = true;
-  print_asm("operand size prefix");
-}
-
 static inline void update_eip(void) {
   cpu.eip = (decoding.is_jmp ? (decoding.is_jmp = 0, decoding.jmp_eip) : decoding.seq_eip);
 }
 
 void exec_wrapper(bool print_flag) {
+	decoding.is_operand_size_16 = false;
+  //decoding.is_addr_size_16 = false;
 #ifdef DEBUG
   decoding.p = decoding.asm_buf;
   decoding.p += sprintf(decoding.p, "%8x:   ", cpu.eip);

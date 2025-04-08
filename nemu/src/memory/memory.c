@@ -19,12 +19,15 @@ uint32_t paddr_read(paddr_t addr, int len) {
 }
 
 void paddr_write(paddr_t addr, int len, uint32_t data) {
+  // 确保长度是有效的
+  assert(len >= 1 && len <= 4);
+  
   int mmio_id = is_mmio(addr);
   if (mmio_id != -1) {
     mmio_write(mmio_id, addr, len, data);
-    return;
+  } else {
+    memcpy(guest_to_host(addr), &data, len);
   }
-  memcpy(guest_to_host(addr), &data, len);
 }
 
 uint32_t vaddr_read(vaddr_t addr, int len) {

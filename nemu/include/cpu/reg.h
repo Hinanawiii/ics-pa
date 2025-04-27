@@ -26,16 +26,15 @@ typedef struct {
       } gpr[8];
     };
     struct {
-  /* Do NOT change the order of the GPRs' definitions. */
-
-  /* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
-   * in PA2 able to directly access these registers.
-   */
+      /* Do NOT change the order of the GPRs' definitions. */
+      /* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
+       * in PA2 able to directly access these registers.
+       */
       rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
     };
   };
   
-   union {
+  union {
     struct {
       uint32_t CF : 1;
       uint32_t : 1;    // 保留位，必须为1
@@ -56,6 +55,15 @@ typedef struct {
     };
     uint32_t val;
   } eflags;
+  
+  // 添加CS寄存器
+  uint16_t cs;
+  
+  // 添加IDTR结构
+  struct {
+    uint32_t base;
+    uint16_t limit;
+  } idtr;
   
   vaddr_t eip;
 } CPU_state;

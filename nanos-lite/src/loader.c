@@ -17,7 +17,9 @@ void hex_dump(void *buf, size_t size) {
 
 uintptr_t loader(_Protect *as, const char *filename) {
   // 直接加载ramdisk内容到0x4000000
+  Log("Loading program into memory...");
   ramdisk_read((void *)0x4000000, 0, get_ramdisk_size());
+  Log("Program loaded, size: %d bytes", get_ramdisk_size());
   
   
   Log("Program header:");

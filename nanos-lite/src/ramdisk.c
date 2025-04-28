@@ -11,7 +11,9 @@ extern uint8_t ramdisk_end;
 
 /* read `len' bytes starting from `offset' of ramdisk into `buf' */
 void ramdisk_read(void *buf, off_t offset, size_t len) {
+	Log("ramdisk_read: buf=%p, offset=%ld, len=%zu", buf, offset, len);
   assert(offset + len <= RAMDISK_SIZE);
+  Log("ramdisk_read: copying from 0x%x to 0x%x", (uintptr_t)(ramdisk_start + offset), (uintptr_t)buf);
   memcpy(buf, &ramdisk_start + offset, len);
 }
 

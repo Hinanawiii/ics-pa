@@ -31,34 +31,26 @@ make_EHelper(mov_cr2r) {
 }
 
 make_EHelper(int) {
-  Log("执行 int 指令，中断号 = %d", id_dest->val);
-  uint8_t NO = id_dest->val;
-  // 输出调试信息
-  Log("Triggering interrupt %d", NO);
+  uint8_t NO = id_dest -> val & 0xff;
   raise_intr(NO, decoding.seq_eip);
-  print_asm("int %#x", NO);
+  print_asm("int %s", id_dest->str);
 #ifdef DIFF_TEST
   diff_test_skip_nemu();
 #endif
 }
 
 make_EHelper(iret) {
-  rtlreg_t temp;
+  rtl_pop(&cpu.eip);
   
-  // 恢复 EIP
-  rtl_pop(&temp);
-  cpu.eip = temp;
+  // 使用临时变量解决类型不匹配问题
+  rtlreg_t cs_temp;
+  rtl_pop(&cs_temp);
+  cpu.cs = (uint16_t)cs_temp;
   
-  // 恢复 CS
-  rtl_pop(&temp);
-  cpu.cs = temp;
-  
-  // 恢复 EFLAGS
-  rtl_pop(&temp);
-  cpu.eflags.val = temp;
-  
-  // 设置 is_jmp 标志，避免更新 seq_eip
-  decoding.is_jmp = true;
+  rtl_pop(&t0);
+  memcpy(&cpu.eflags, &t0, sizeof(cpu.eflags));
+  decoding.jmp_eip = 1;
+  decoding.seq_eip = cpu.eip;
   
   print_asm("iret");
 }

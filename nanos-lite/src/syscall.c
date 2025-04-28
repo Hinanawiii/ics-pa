@@ -1,43 +1,89 @@
 #include "common.h"
 #include "syscall.h"
+#include "fs.h"
+int sys_none() {
+  return 1;
+}
+
+void sys_exit(int a){
+  _halt(a);
+}
+
+int sys_write(int fd, void *buf, size_t len) {
+	if(fd == 1 || fd == 2){
+		char c;
+    // Log("buffer:%s", (char*)buf);
+		for(int i = 0; i < len; i++) {
+			memcpy(&c ,buf + i, 1);
+			_putc(c);
+		}
+		return len;
+	}
+  // else{
+  //   panic("Unhandled fd=%d in sys_write()",fd);
+  // }
+  if(fd >= 3) {
+    return fs_write(fd, buf, len);
+  }
+  Log("fd <= 0");
+	return -1;			
+}
+
+int sys_open(const char *pathname){
+    return fs_open(pathname, 0, 0);
+}
+
+int sys_read(int fd, void *buf,size_t len){
+    return fs_read(fd, buf, len);
+}
+
+int sys_lseek(int fd, off_t offset, int whence) {
+    return fs_lseek(fd, offset, whence);
+}
+
+int sys_brk(int addr) {
+  return 0;
+}
+
+int sys_close(int fd){
+    return fs_close(fd);
+}
 
 _RegSet* do_syscall(_RegSet *r) {
   uintptr_t a[4];
-  a[0] = SYSCALL_ARG1(r);  // 系统调用号
-  a[1] = SYSCALL_ARG2(r);  // 参数
-  a[2] = SYSCALL_ARG3(r);  
-  a[3] = SYSCALL_ARG4(r);  
+  a[0] = SYSCALL_ARG1(r);
+  a[1] = SYSCALL_ARG2(r);
+  a[2] = SYSCALL_ARG3(r);
+  a[3] = SYSCALL_ARG4(r);
 
   switch (a[0]) {
     case SYS_none: 
-      SYSCALL_ARG1(r) = 1;  // 返回1
+      SYSCALL_ARG1(r) = sys_none();
       break;
-    case SYS_exit:
-      Log("Program exit with code %d", a[1]);
-      _halt(a[1]);  // 使用参数作为退出状态
+    case SYS_exit: 
+      sys_exit(a[1]);
       break;
-		case SYS_write: {
-			Log("Handling SYS_write: fd=%d, buf=%p, count=%d", a[1], (void*)a[2], a[3]);
-			if (a[1] == 1 || a[1] == 2) {
-				// 输出到串口
-				for (int i = 0; i < a[3]; i++) {
-				  char c = *(char*)(a[2] + i);
-				  _putc(c);
-				  Log("Output character: %c", c);
-				}
-				SYSCALL_ARG1(r) = a[3];
-			} else {
-				// ...
-			}
-			Log("SYS_write completed, returned %d", SYSCALL_ARG1(r));
-			break;
-		}
-  	case SYS_brk:
-  	// 在目前的Nanos-lite中，我们总是返回0表示成功
-  		SYSCALL_ARG1(r) = 0;
-  		break;
+    case SYS_write:
+      SYSCALL_ARG1(r) = sys_write(a[1], (void*)a[2], a[3]);
+      break;
+    case SYS_brk:
+      SYSCALL_ARG1(r) = sys_brk(a[1]);
+      break;
+    case SYS_read:
+      SYSCALL_ARG1(r) = sys_read(a[1],(void*)a[2],a[3]);
+      break;
+    case SYS_open:
+      SYSCALL_ARG1(r) = sys_open((char*) a[1]);
+      break;
+    case SYS_close:
+      SYSCALL_ARG1(r) = sys_close(a[1]);
+      break;
+    case SYS_lseek:
+      SYSCALL_ARG1(r)=sys_lseek(a[1],a[2],a[3]);
+      break;
     default: panic("Unhandled syscall ID = %d", a[0]);
   }
 
   return NULL;
 }
+

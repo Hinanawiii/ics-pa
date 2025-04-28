@@ -30,8 +30,11 @@ int main() {
 
   init_fs();
 
-  uint32_t entry = loader(NULL, NULL);
-  ((void (*)(void))entry)();
+	Log("About to call loader...");
+	uint32_t entry = loader(NULL, NULL);
+	Log("Program loaded, entry point: 0x%x", entry);
+	Log("About to jump to program...");
+	((void (*)(void))entry)();
 
   panic("Should not reach here");
 }

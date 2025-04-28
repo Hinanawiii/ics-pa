@@ -55,7 +55,7 @@ int fs_open(const char *pathname, int flags, int mode) {
   }
   
   // 找不到文件
-  assert(0);
+  panic("File not found: %s", pathname); 
   return -1;
 }
 

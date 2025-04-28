@@ -1,15 +1,10 @@
 #include "fs.h"
 
-extern char dispinfo[];
-
-void ramdisk_read(void *buf, off_t offset, size_t len);
-void ramdisk_write(const void *buf, off_t offset, size_t len);
-
 typedef struct {
   char *name;
   size_t size;
   off_t disk_offset;
-  off_t open_offset;
+  off_t open_offset;  // 文件被打开之后的读写指针
 } Finfo;
 
 enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB, FD_EVENTS, FD_DISPINFO, FD_NORMAL};
@@ -24,6 +19,7 @@ static Finfo file_table[] __attribute__((used)) = {
   [FD_DISPINFO] = {"/proc/dispinfo", 128, 0},
 #include "files.h"
 };
+
 
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
 
@@ -54,10 +50,10 @@ int fs_open(const char *pathname, int flags, int mode) {
 			return i;
 		}
 	}
-  
-  // 找不到文件
-  panic("File not found: %s", pathname); 
-  return -1;
+	assert(0);
+  //Log("read over");
+
+	return -1;
 }
 
 ssize_t fs_read(int fd, void *buf, size_t len) {
@@ -92,31 +88,40 @@ ssize_t fs_write(int fd, const void *buf, size_t len) {
 	switch(fd) {
 		case FD_STDOUT:
 		case FD_STDERR:
+			// call _putc()
+			// 串口已被抽象成stdout stderr
 			for(int i = 0; i < len; i++) {
 				_putc(((char*)buf)[i]);
 			}
 			break;
 		case FD_FB:
-			// 显存
+			// write to frame buffer 显存
+			// device.c:fb_write buff中len字节输出到屏幕上offest处
 			fb_write(buf, file_table[fd].open_offset, len);
 			file_table[fd].open_offset += len;
 			break;
 		default:
+			// write to ramdisk
+			//if(file_table[fd].open_offset >= fs_size)
+				//return 0;	
 			if(file_table[fd].open_offset + len > fs_size)
 				len = fs_size - file_table[fd].open_offset;
+			// 对文件的真正读写
 			ramdisk_write(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
 			file_table[fd].open_offset += len;
+			//Log("offset = %d", file_table[fd].open_offset);
 			break;
 	}
+  //Log("file write over");
 
 	return len;// 参见man 返回值
 }
 
 off_t fs_lseek(int fd, off_t offset, int whence) {
-  assert(fd >= 0 && fd < NR_FILES);
-  off_t result = -1;
-  // 根据whence计算
-  switch (whence) {
+	off_t result = -1;
+	// fs.h
+	// man 2 lseek 同时注意边界问题
+	switch(whence) {
 		case SEEK_SET:
 			if (offset >= 0 && offset <= file_table[fd].size) {
 				file_table[fd].open_offset = offset;
@@ -133,12 +138,15 @@ off_t fs_lseek(int fd, off_t offset, int whence) {
 			file_table[fd].open_offset = file_table[fd].size + offset;
 			result = file_table[fd].open_offset;
 			break;
-  }
-  
-  return result;
+	}
+	//Log("file seek over");
+
+	return result;
 }
 
+
 int fs_close(int fd) {
-  // 简单返回成功
-  return 0;
+	//fs_lseek(fd,0,SEEK_SET);
+  //Log("file closed");
+	return 0;
 }

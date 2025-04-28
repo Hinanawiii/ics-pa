@@ -5,13 +5,11 @@ void diff_test_skip_nemu();
 
 make_EHelper(lidt) {
   // TODO();
-  t1 = id_dest -> val;
-  rtl_lm(&t0, &t1, 2);
-  cpu.idtr.limit = t0;
-
-  t1 = id_dest -> val + 2;
-  rtl_lm(&t0, &t1, 4);
-  cpu.idtr.base = t0;
+  rtl_li(&t0, id_dest->addr);
+  rtl_li(&cpu.idtr.limit,vaddr_read(t0,2));
+  rtl_li(&cpu.idtr.base,vaddr_read(t0+2,4));
+  if(decoding.is_operand_size_16)
+    cpu.idtr.base &= 0x00ffffff;
 
 #ifdef DEBUG
   Log("idtr.limit=0x%x", cpu.idtr.limit);
@@ -21,13 +19,33 @@ make_EHelper(lidt) {
 }
 
 make_EHelper(mov_r2cr) {
-  TODO();
+  switch (id_dest->reg) {
+	case 0:
+		cpu.cr0.val = id_src->val;
+		break;
+	case 3:
+		cpu.cr3.val = id_src->val;
+		break;
+	default:
+		Assert(0, "Shoule reach here for NO cr%d", id_dest->reg);
+		break;
+  }
 
   print_asm("movl %%%s,%%cr%d", reg_name(id_src->reg, 4), id_dest->reg);
 }
 
 make_EHelper(mov_cr2r) {
-  TODO();
+  switch (id_src->reg) {
+	case 0:
+		operand_write(id_dest, &cpu.cr0.val);
+		break;
+	case 3:
+		operand_write(id_dest, &cpu.cr3.val);
+		break;
+	default:
+		Assert(0, "Shoule reach here for NO cr%d", id_dest->reg);
+		break;
+  }
 
   print_asm("movl %%cr%d,%%%s", id_src->reg, reg_name(id_dest->reg, 4));
 
@@ -37,8 +55,7 @@ make_EHelper(mov_cr2r) {
 }
 
 make_EHelper(int) {
-  uint8_t NO = id_dest -> val & 0xff;
-  raise_intr(NO, decoding.seq_eip);
+  raise_intr(id_dest->val, decoding.seq_eip);
   print_asm("int %s", id_dest->str);
 #ifdef DIFF_TEST
   diff_test_skip_nemu();
@@ -47,18 +64,14 @@ make_EHelper(int) {
 
 make_EHelper(iret) {
 
-  rtl_pop(&cpu.eip);
-  printf("iret: setting EIP to 0x%x\n", cpu.eip);
-  
+  rtl_pop(&decoding.jmp_eip);
+  decoding.jmp_eip = true;
   // 使用临时变量解决类型不匹配问题
   rtlreg_t cs_temp;
   rtl_pop(&cs_temp);
   cpu.cs = (uint16_t)cs_temp;
-  
   rtl_pop(&t0);
   memcpy(&cpu.eflags, &t0, sizeof(cpu.eflags));
-  decoding.jmp_eip = true;
-  decoding.seq_eip = cpu.eip;
   
   print_asm("iret");
 }

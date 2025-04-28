@@ -2,7 +2,7 @@
 #define __REG_H__
 
 #include "common.h"
-
+#include "memory/mmu.h"
 enum { R_EAX, R_ECX, R_EDX, R_EBX, R_ESP, R_EBP, R_ESI, R_EDI };
 enum { R_AX, R_CX, R_DX, R_BX, R_SP, R_BP, R_SI, R_DI };
 enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
@@ -57,13 +57,17 @@ typedef struct {
   } eflags;
   
   // 添加CS寄存器
-  uint16_t cs;
+  uint32_t cs;
   
   // 添加IDTR结构
   struct {
     uint32_t base;
-    uint16_t limit;
+    uint32_t limit;
   } idtr;
+  
+  CR0 cr0;
+  CR3 cr3;
+  bool INTR;
   
   vaddr_t eip;
 } CPU_state;

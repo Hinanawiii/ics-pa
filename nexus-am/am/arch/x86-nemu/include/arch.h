@@ -14,9 +14,9 @@
 struct _RegSet {
   // uintptr_t esi, ebx, eax, eip, edx, error_code, eflags, ecx, cs, esp, edi, ebp;
   uintptr_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-  uintptr_t error_code;
-  int       irq;
 
+  int       irq;
+  uintptr_t error_code;
   uintptr_t eip;
   uintptr_t cs;
   uintptr_t eflags;

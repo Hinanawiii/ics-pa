@@ -11,22 +11,19 @@ extern uint8_t ramdisk_end;
 
 #define RAMDISK_SIZE ((&ramdisk_end) - (&ramdisk_start))
 
-
-void hex_dump(void *buf, size_t size) {
-  uint8_t *p = (uint8_t*)buf;
-  for (size_t i = 0; i < size && i < 64; i++) {
-    if (i % 16 == 0) Log("\n%08x: ", i);
-    Log("%02x ", p[i]);
-  }
-  Log("\n");
-}
+void ramdisk_read(void *buf, off_t offset, size_t len);
+void ramdisk_write(const void *buf, off_t offset, size_t len);
+size_t get_ramdisk_size();
 
 uintptr_t loader(_Protect *as, const char *filename) {
   // TODO();
-  ramdisk_read(DEFAULT_ENTRY, 0, RAMDISK_SIZE);
+  ramdisk_read(DEFAULT_ENTRY,0,get_ramdisk_size()); 
   //int fd = fs_open(filename, 0, 0);
-  //Log("filename=%s,fd=%d",filename,fd);
-  //fs_read(fd, DEFAULT_ENTRY, fs_filesz(fd));
+  //Log("fd=%d\n",fd);
+  //size_t f_size = fs_filesz(fd);
+  //Log("filesize=%d",f_size);
+  //fs_read(fd, DEFAULT_ENTRY, f_size);
   //fs_close(fd);
+  
   return (uintptr_t)DEFAULT_ENTRY;
 }

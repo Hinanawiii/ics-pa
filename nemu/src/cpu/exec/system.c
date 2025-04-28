@@ -31,6 +31,7 @@ make_EHelper(mov_cr2r) {
 }
 
 make_EHelper(int) {
+  Log("执行 int 指令，中断号 = %d", id_dest->val);
   uint8_t NO = id_dest->val;
   // 输出调试信息
   Log("Triggering interrupt %d", NO);

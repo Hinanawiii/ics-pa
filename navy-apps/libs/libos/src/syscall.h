@@ -3,15 +3,25 @@
 
 enum {
   SYS_none,
-  SYS_exit,
-  SYS_write,
-  SYS_brk,
   SYS_open,
   SYS_read,
+  SYS_write,
+  SYS_exit,
+  SYS_kill,
+  SYS_getpid,
   SYS_close,
   SYS_lseek,
-  SYS_kill,
-  SYS_getpid
+  SYS_brk,
+  SYS_fstat,
+  SYS_time,
+  SYS_signal,
+  SYS_execve,
+  SYS_fork,
+  SYS_link,
+  SYS_unlink,
+  SYS_wait,
+  SYS_times,
+  SYS_gettimeofday
 };
 
 #endif

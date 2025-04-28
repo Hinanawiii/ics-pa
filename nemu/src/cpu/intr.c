@@ -34,6 +34,12 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
   vaddr_t target = (offset_31_16 << 16) | offset_15_0;
   Log("计算得到的目标地址: 0x%x", target);
   
+  Log("Content at target address 0x%x:", target);
+  for(int i = 0; i < 16; i += 4) {
+    uint32_t *p = (uint32_t*)(target + i);
+    Log("0x%08x: 0x%08x", target + i, *p);
+  }
+  
   // 跳转到中断处理程序
   cpu.eip = target;
   Log("设置 EIP = 0x%x, 完成中断处理", target);

@@ -1,8 +1,7 @@
 #ifndef __SYSCALL_H__
 #define __SYSCALL_H__
 
-#include "common.h"
-_RegSet* do_syscall(_RegSet *r);
+
 
 enum {
   SYS_none,

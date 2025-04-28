@@ -46,24 +46,22 @@ make_EHelper(int) {
 }
 
 make_EHelper(iret) {
-  // 打印当前栈信息进行调试
-  rtlreg_t ret_addr;
+
+	rtlreg_t ret_addr;
   rtl_lr(&ret_addr, R_ESP, 0);
   printf("iret: stack top contains 0x%x\n", ret_addr);
-  
-  // 标准iret实现
+
   rtl_pop(&cpu.eip);
   printf("iret: setting EIP to 0x%x\n", cpu.eip);
   
+  // 使用临时变量解决类型不匹配问题
   rtlreg_t cs_temp;
   rtl_pop(&cs_temp);
   cpu.cs = (uint16_t)cs_temp;
   
   rtl_pop(&t0);
   memcpy(&cpu.eflags, &t0, sizeof(cpu.eflags));
-  
-  // 使用你原来的设置方式
-  decoding.jmp_eip = 1;
+  decoding.jmp_eip = true;
   decoding.seq_eip = cpu.eip;
   
   print_asm("iret");

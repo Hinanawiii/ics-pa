@@ -20,7 +20,12 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
   rtl_push(&t0);
   
   // 计算IDT表项地址
+  printf("CPU IDTR: base=0x%x, limit=0x%x\n", cpu.idtr.base, cpu.idtr.limit);
+  printf("Interrupt number: %d\n", NO);
+  
   vaddr_t gate_addr = cpu.idtr.base + NO * sizeof(GateDesc);
+  printf("Gate address: 0x%x\n", gate_addr);
+  printf("IDT end address: 0x%x\n", cpu.idtr.base + cpu.idtr.limit);
   assert(gate_addr <= cpu.idtr.base + cpu.idtr.limit);
   
   // 获取目标地址

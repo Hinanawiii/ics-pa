@@ -2,7 +2,7 @@
 
 extern uint8_t ramdisk_start;
 extern uint8_t ramdisk_end;
-#define RAMDISK_SIZE (1024 * 1024 * 128)
+#define RAMDISK_SIZE ramdisk_end-ramdisk_start
 
 /* The kernel is monolithic, therefore we do not need to
  * translate the address `buf' from the user process to
@@ -29,7 +29,5 @@ void init_ramdisk() {
 }
 
 size_t get_ramdisk_size() {
-  size_t size = ramdisk_end - ramdisk_start;
-  Log("get_ramdisk_size: returning %zu bytes", size);
-  return size;
+  return RAMDISK_SIZE;
 }

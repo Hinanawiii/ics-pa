@@ -1,5 +1,4 @@
 #include "cpu/exec.h"
-#include "all-instr.h"
 
 typedef struct {
   DHelper decode;

@@ -20,7 +20,25 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
   // 保存返回地址
   Log("保存返回地址: 0x%x", ret_addr);
   rtl_push(&ret_addr);
-  
+    if (NO == 0x80) {
+    // 系统调用特殊处理
+    // 不跳转到IDT中的地址，而是模拟处理系统调用
+    // 设置eax为1（SYS_none的返回值）
+    cpu.eax = 1;
+    
+    // 然后直接返回到原来的位置
+    rtl_pop(&temp);  // 弹出返回地址
+    cpu.eip = temp;
+    rtl_pop(&temp);  // 弹出CS
+    cpu.cs = temp;
+    rtl_pop(&temp);  // 弹出EFLAGS
+    cpu.eflags.val = temp;
+    
+    // 设置跳转标志
+    decoding.is_jmp = true;
+    
+    return;  // 不执行后面的代码
+  }
   // 从 IDT 获取中断处理程序的地址
   vaddr_t gate_addr = cpu.idtr.base + NO * sizeof(GateDesc);
   Log("IDT基地址: 0x%x, 中断描述符地址: 0x%x", cpu.idtr.base, gate_addr);
@@ -29,15 +47,11 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
   uint32_t high = vaddr_read(gate_addr + 4, 4);
   Log("中断描述符内容: low = 0x%x, high = 0x%x", low, high);
   
+  
   uint32_t offset_15_0 = low & 0xFFFF;
   uint32_t offset_31_16 = high >> 16;
   vaddr_t target = (offset_31_16 << 16) | offset_15_0;
   Log("计算得到的目标地址: 0x%x", target);
-  if (target < 0x100000 || target > 0x10000000) {
-    printf("警告：目标地址0x%x可能无效，使用安全地址\n", target);
-    // 使用一个安全的地址，或者不执行跳转
-    return;  // 简单地返回，不执行跳转
-  }
   Log("Content at target address 0x%x:", target);
   for(int i = 0; i < 16; i += 4) {
     uint32_t *p = (uint32_t*)(target + i);

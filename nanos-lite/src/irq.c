@@ -14,5 +14,7 @@ static _RegSet* do_event(_Event e, _RegSet* r) {
 }
 
 void init_irq(void) {
+  Log("Initializing interrupt/exception handler...");
   _asye_init(do_event);
+  // 打印一些 IDT 相关信息
 }

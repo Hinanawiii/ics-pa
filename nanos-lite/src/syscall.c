@@ -13,6 +13,7 @@ _RegSet* do_syscall(_RegSet *r) {
       SYSCALL_ARG1(r) = 1;  // 返回1
       break;
     case SYS_exit:
+      Log("Program exit with code %d", a[1]);
       _halt(a[1]);  // 使用参数作为退出状态
       break;
     case SYS_write:

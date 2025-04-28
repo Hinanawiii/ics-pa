@@ -31,10 +31,11 @@ make_EHelper(mov_cr2r) {
 }
 
 make_EHelper(int) {
-  raise_intr(id_dest->val, decoding.seq_eip);
-
-  print_asm("int %s", id_dest->str);
-
+  uint8_t NO = id_dest->val;
+  // 输出调试信息
+  Log("Triggering interrupt %d", NO);
+  raise_intr(NO, decoding.seq_eip);
+  print_asm("int %#x", NO);
 #ifdef DIFF_TEST
   diff_test_skip_nemu();
 #endif
@@ -43,17 +44,20 @@ make_EHelper(int) {
 make_EHelper(iret) {
   rtlreg_t temp;
   
-  // 恢复EIP
+  // 恢复 EIP
   rtl_pop(&temp);
   cpu.eip = temp;
   
-  // 恢复CS
+  // 恢复 CS
   rtl_pop(&temp);
-  cpu.cs = (uint16_t)temp;
+  cpu.cs = temp;
   
-  // 恢复EFLAGS
+  // 恢复 EFLAGS
   rtl_pop(&temp);
   cpu.eflags.val = temp;
+  
+  // 设置 is_jmp 标志，避免更新 seq_eip
+  decoding.is_jmp = true;
   
   print_asm("iret");
 }

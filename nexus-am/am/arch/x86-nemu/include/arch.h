@@ -12,17 +12,11 @@
 #define SYSCALL_ARG4(r) r->edx
 
 struct _RegSet {
-  uintptr_t esi, ebx, eax, eip, edx, error_code, eflags, ecx, cs, esp, edi, ebp;
+  uintptr_t esi, ebx, eax, edx, ecx, esp, edi, ebp;
   int       irq;
   uintptr_t error_code;                              // 错误码
   uintptr_t eip, cs, eflags;                         // int指令压栈的内容
-};_RegSet;
-
-#define SYSCALL_ARG1(r) 0
-#define SYSCALL_ARG2(r) 0
-#define SYSCALL_ARG3(r) 0
-#define SYSCALL_ARG4(r) 0
-
+};
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -1,88 +1,123 @@
 #include "cpu/exec.h"
 
 make_EHelper(add) {
-  rtl_add(&t0, &id_dest->val, &id_src->val);
-  operand_write(id_dest, &t0);
-  //不影响结果（交换律）
-  // 更新标志位
-  rtl_update_ZFSF(&t0, id_dest->width);
-  rtl_set_CF_add(&t0, &id_dest->val, &id_src->val); 
-  rtl_set_OF_add(&id_dest->val, &id_src->val, &t0); // 正确
+  rtl_add(&t2, &id_dest->val, &id_src->val);
+  rtl_sltu(&t3, &t2, &id_dest->val);
+  operand_write(id_dest, &t2);
+
+  rtl_update_ZFSF(&t2, id_dest->width);
+
+  rtl_sltu(&t0, &t2, &id_dest->val);
+  rtl_or(&t0, &t3, &t0);
+  rtl_set_CF(&t0);
+
+  rtl_xor(&t0, &id_dest->val, &id_src->val);
+  rtl_not(&t0);
+  rtl_xor(&t1, &id_dest->val, &t2);
+  rtl_and(&t0, &t0, &t1);
+  rtl_msb(&t0, &t0, id_dest->width);
+  rtl_set_OF(&t0);
 
   print_asm_template2(add);
 }
 
 make_EHelper(sub) {
-  rtl_sub(&t2, &id_dest->val, &id_src->val);
-  
-  // 设置借位标志
+  rtl_sext(&id_src->val, &id_src->val, id_src->width); //将源操作数进行符号扩展至寄存器的宽度
+  rtl_sub(&t2, &id_dest->val, &id_src->val); //进行减运算
   rtl_sltu(&t3, &id_dest->val, &t2);
-  rtl_set_CF(&t3);
-  
-  // 写回结果
   operand_write(id_dest, &t2);
-  
-  // 更新标志位
   rtl_update_ZFSF(&t2, id_dest->width);
   
-  // 计算溢出标志
+  //基于目标操作数（id_dest）和结果（t2）之间的比较的结果和t3的值更新进位标志（CF）。
+  
+  rtl_sltu(&t0, &id_dest->val, &t2);
+  rtl_or(&t0, &t3, &t0);
+  rtl_set_CF(&t0);
+  
+  //根据目标操作数（id_dest）、源操作数（id_src）和结果（t2）的值更新溢出标志（OF）。
+  
   rtl_xor(&t0, &id_dest->val, &id_src->val);
   rtl_xor(&t1, &id_dest->val, &t2);
   rtl_and(&t0, &t0, &t1);
   rtl_msb(&t0, &t0, id_dest->width);
   rtl_set_OF(&t0);
   
+  
   print_asm_template2(sub);
 }
 
-
-
 make_EHelper(cmp) {
+  rtl_sub(&t2, &id_dest->val, &id_src->val);
+  rtl_sltu(&t3, &id_dest->val, &t2);
+  rtl_update_ZFSF(&t2, id_dest->width);
 
-  rtl_sub(&t0, &id_dest->val, &id_src->val);
-  
-  // 更新标志位但不写回
-  rtl_update_ZFSF(&t0, id_dest->width);
-  rtl_set_CF_sub(&id_dest->val, &id_src->val);
-  rtl_set_OF_sub(&id_dest->val, &id_src->val, &t0);
+  rtl_sltu(&t0, &id_dest->val, &t2);
+  rtl_or(&t0, &t3, &t0);
+  rtl_set_CF(&t0);
+
+  rtl_xor(&t0, &id_dest->val, &id_src->val);
+  rtl_xor(&t1, &id_dest->val, &t2);
+  rtl_and(&t0, &t0, &t1);
+  rtl_msb(&t0, &t0, id_dest->width);
+  rtl_set_OF(&t0);
 
   print_asm_template2(cmp);
 }
 
 make_EHelper(inc) {
+  rtl_addi(&t2, &id_dest->val, 1);
+  operand_write(id_dest, &t2);
+
+  rtl_update_ZFSF(&t2, id_dest->width);
 
   rtl_li(&t0, 1);
-  rtl_add(&t0, &id_dest->val, &t0);
-  operand_write(id_dest, &t0);
-  
-  // 更新标志位（不影响CF）
-  rtl_update_ZFSF(&t0, id_dest->width);
-  rtl_set_OF_add(&t0, &id_dest->val, &tzero);
+  rtl_xor(&t0, &id_dest->val, &t0);
+  rtl_xor(&t1, &id_dest->val, &t2);
+  rtl_and(&t0, &t0, &t1);
+  rtl_msb(&t0, &t0, id_dest->width);
+  rtl_set_OF(&t0);
+
   print_asm_template1(inc);
 }
 
+
 make_EHelper(dec) {
+  rtl_subi(&t2, &id_dest->val, 1);
+  operand_write(id_dest, &t2);
+
+  rtl_update_ZFSF(&t2, id_dest->width);
+
   rtl_li(&t0, 1);
-  rtl_sub(&t0, &id_dest->val, &t0);
-  operand_write(id_dest, &t0);
-  
-  // 更新标志位（不影响CF）
-  rtl_update_ZFSF(&t0, id_dest->width);
-  rtl_set_OF_sub(&id_dest->val, &tzero, &t0);
+  rtl_xor(&t0, &id_dest->val, &t0);
+  rtl_xor(&t1, &id_dest->val, &t2);
+  rtl_and(&t0, &t0, &t1);
+  rtl_msb(&t0, &t0, id_dest->width);
+  rtl_set_OF(&t0);
 
   print_asm_template1(dec);
 }
 
+
 make_EHelper(neg) {
-  rtl_sub(&t0, &tzero, &id_dest->val);
-  operand_write(id_dest, &t0);
+  rtl_li(&t2, id_dest->val);
+  rtl_not(&t2);
+  rtl_addi(&t2, &t2, 1);
+  operand_write(id_dest, &t2);
   
-  rtl_update_ZFSF(&t0, id_dest->width);
-  rtl_set_CF_neg(&id_dest->val); 
-  rtl_set_OF_neg(&id_dest->val);
+  rtl_update_ZFSF(&t2, id_dest->width);
+
+  t1 = (id_dest->val != 0);
+  rtl_set_CF(&t1);
+
+  rtl_xor(&t0, &id_dest->val, &t0);
+  rtl_xor(&t1, &id_dest->val, &t2);
+  rtl_and(&t0, &t0, &t1);
+  rtl_msb(&t0, &t0, id_dest->width);
+  rtl_set_OF(&t0);
 
   print_asm_template1(neg);
 }
+
 
 make_EHelper(adc) {
   rtl_add(&t2, &id_dest->val, &id_src->val);

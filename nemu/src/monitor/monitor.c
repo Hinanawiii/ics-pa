@@ -81,14 +81,9 @@ static inline void load_img() {
 
 static inline void restart() {
   /* Set the initial instruction pointer. */
-  memset(&cpu,0,sizeof(cpu));
   cpu.eip = ENTRY_START;
-  cpu.eflags.val = 0x00000002;
-  
-  cpu.cs = 8;          // 配合QEMU的differential testing
-  cpu.eflags.val = 0x2;    // 配合QEMU的differential testing
-  cpu.idtr.base = 0;
-  cpu.idtr.limit = 0;
+  cpu.eflags = 0x2;
+  cpu.cs = 0x8;
 
 #ifdef DIFF_TEST
   init_qemu_reg();

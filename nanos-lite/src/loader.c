@@ -14,5 +14,5 @@ uintptr_t loader(_Protect *as, const char *filename) {
   fs_close(fd);
   Log("File closed, returning entry point 0x4000000");
   
-  return (uintptr_t)DEFAULT_ENTRY;//
+  return (uintptr_t)DEFAULT_ENTRY;
 }

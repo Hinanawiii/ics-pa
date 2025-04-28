@@ -33,7 +33,11 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
   uint32_t offset_31_16 = high >> 16;
   vaddr_t target = (offset_31_16 << 16) | offset_15_0;
   Log("计算得到的目标地址: 0x%x", target);
-  
+  if (target < 0x100000 || target > 0x10000000) {
+    printf("警告：目标地址0x%x可能无效，使用安全地址\n", target);
+    // 使用一个安全的地址，或者不执行跳转
+    return;  // 简单地返回，不执行跳转
+  }
   Log("Content at target address 0x%x:", target);
   for(int i = 0; i < 16; i += 4) {
     uint32_t *p = (uint32_t*)(target + i);

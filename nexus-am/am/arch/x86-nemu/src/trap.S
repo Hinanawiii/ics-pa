@@ -14,4 +14,3 @@ asm_trap:
   addl $8, %esp
 
   iret
-

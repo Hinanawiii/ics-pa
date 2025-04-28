@@ -26,7 +26,7 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
   vaddr_t gate_addr = cpu.idtr.base + NO * sizeof(GateDesc);
   printf("Gate address: 0x%x\n", gate_addr);
   printf("IDT end address: 0x%x\n", cpu.idtr.base + cpu.idtr.limit);
-  //assert(gate_addr <= cpu.idtr.base + cpu.idtr.limit);
+  assert(gate_addr <= cpu.idtr.base + cpu.idtr.limit);
   
   // 获取目标地址
   uint32_t off_15_0 = vaddr_read(gate_addr, 2);

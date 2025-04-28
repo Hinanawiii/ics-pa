@@ -47,10 +47,6 @@ make_EHelper(int) {
 
 make_EHelper(iret) {
 
-	rtlreg_t ret_addr;
-  rtl_lr(&ret_addr, R_ESP, 0);
-  printf("iret: stack top contains 0x%x\n", ret_addr);
-
   rtl_pop(&cpu.eip);
   printf("iret: setting EIP to 0x%x\n", cpu.eip);
   

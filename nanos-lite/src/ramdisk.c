@@ -29,5 +29,7 @@ void init_ramdisk() {
 }
 
 size_t get_ramdisk_size() {
-  return RAMDISK_SIZE;
+  size_t size = ramdisk_end - ramdisk_start;
+  Log("get_ramdisk_size: returning %zu bytes", size);
+  return size;
 }

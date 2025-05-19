@@ -1,6 +1,6 @@
 #include "cpu/exec.h"
 #include "all-instr.h"
-
+void raise_intr(uint8_t NO, vaddr_t ret_addr);
 typedef struct {
   DHelper decode;
   EHelper execute;
@@ -42,7 +42,7 @@ static make_EHelper(name) { \
 /* 0x80, 0x81, 0x83 */
 make_group(gp1,
     EX(add), EX(or), EX(adc), EX(sbb),
-    EX(and), EX(sub), EX(xor), EX(cmp))
+    EX(and), EX(sub), EX(xor), EXW(cmp,1))
 
   /* 0xc0, 0xc1, 0xd0, 0xd1, 0xd2, 0xd3 */
 make_group(gp2,
@@ -228,8 +228,10 @@ void exec_wrapper(bool print_flag) {
   decoding.p = decoding.asm_buf;
   decoding.p += sprintf(decoding.p, "%8x:   ", cpu.eip);
 #endif
+
   decoding.seq_eip = cpu.eip;
   exec_real(&decoding.seq_eip);
+
 #ifdef DEBUG
   int instr_len = decoding.seq_eip - cpu.eip;
   sprintf(decoding.p, "%*.s", 50 - (12 + 3 * instr_len), "");
@@ -255,4 +257,7 @@ if (cpu.INTR & cpu.eflags.IF) {
   void difftest_step(uint32_t);
   difftest_step(eip);
 #endif
+
+
+
 }

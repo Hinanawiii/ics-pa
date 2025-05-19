@@ -2,36 +2,19 @@
 #include "syscall.h"
 #include "fs.h"
 static inline _RegSet* sys_none(_RegSet *r){
-  SYSCALL_ARG1(r) = 1; //约定系统调用返回值存于此，即eax
+  SYSCALL_ARG1(r) = 1; 
   return NULL;
 }
 static inline _RegSet* sys_exit(_RegSet *r){
-  //接受一个退出状态的参数，顺序ebx ecx edx
   _halt(SYSCALL_ARG2(r)); 
   return NULL;
 }
 
 static inline _RegSet* sys_write(_RegSet *r){
-  // //获取三个参数：fd buf len
-  // int fd = (int)SYSCALL_ARG2(r);
-  // char *buf = (char *)SYSCALL_ARG3(r);
-  // int len = (int)SYSCALL_ARG4(r);
-  // // Log("!");
-  // if(fd == 1 || fd == 2){
-  //   for(int i = 0; i < len; i++) {
-  //       _putc(buf[i]);
-  //   }
-  //   //根据man 返回len
-  //   SYSCALL_ARG1(r) = len;
-  // }
-
-  // return NULL;
-
   int fd = (int)SYSCALL_ARG2(r);
   char *buf = (char *)SYSCALL_ARG3(r);
   int len = (int)SYSCALL_ARG4(r);
   SYSCALL_ARG1(r) = fs_write(fd,buf,len);
-  //Log("used sys_write!");
   return NULL;
 }
 
@@ -68,7 +51,6 @@ static inline _RegSet* sys_lseek(_RegSet *r) {
 
 static inline _RegSet* sys_brk(_RegSet *r){
  SYSCALL_ARG1(r) = 0;//总是返回0
- //r->eax=0;
   return NULL;
 }
 
@@ -106,3 +88,4 @@ _RegSet* do_syscall(_RegSet *r) {
 
   return NULL;
 }
+

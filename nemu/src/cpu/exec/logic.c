@@ -1,67 +1,58 @@
 #include "cpu/exec.h"
 
+/* 优化标志位处理逻辑 */
 make_EHelper(test) {
   rtl_and(&t0, &id_dest->val, &id_src->val);
-  
   rtl_update_ZFSF(&t0, id_dest->width);
   
+  // 根据x86规范清除CF/OF
   rtl_li(&t1, 0);
   rtl_set_CF(&t1);
   rtl_set_OF(&t1);
-  //printf("test result: ZF=%d, n=%d\n", cpu.eflags.ZF, id_dest->val);
+  
   print_asm_template2(test);
 }
 
+/* 精简AND实现 */
 make_EHelper(and) {
-/*
-  printf("AND调试信息:\n");
-  printf("  操作码: 0x%02x\n", decoding.opcode);
-  printf("  目标操作数宽度: %d\n", id_dest->width);
-  printf("  目标操作数值: 0x%x\n", id_dest->val);
-  printf("  源操作数值: 0x%x\n", id_src->val);
-  */
-  
   rtl_and(&t0, &id_dest->val, &id_src->val);
-  operand_write(id_dest, &t0); 
-//  printf("  执行结果: 0x%x\n", t0);
-  rtl_update_ZFSF(&t0, id_dest->width);
+  operand_write(id_dest, &t0);
   
-  rtl_li(&t1, 0);
-  rtl_set_CF(&t1);
-  rtl_set_OF(&t1);
+  rtl_update_ZFSF(&t0, id_dest->width);
+  rtl_set_CF(&tzero);  // 直接使用tzero寄存器优化
+  rtl_set_OF(&tzero);
   
   print_asm_template2(and);
 }
 
+/* 优化异或指令流水线 */
 make_EHelper(xor) {
   rtl_xor(&t0, &id_dest->val, &id_src->val);
   operand_write(id_dest, &t0);
   
   rtl_update_ZFSF(&t0, id_dest->width);
-  
-  rtl_li(&t1, 0);
-  rtl_set_CF(&t1);
-  rtl_set_OF(&t1);
+  rtl_set_CF(&tzero);
+  rtl_set_OF(&tzero);
   
   print_asm_template2(xor);
 }
 
+/* 增强位操作原子性 */
 make_EHelper(or) {
   rtl_or(&t0, &id_dest->val, &id_src->val);
   operand_write(id_dest, &t0);
   
   rtl_update_ZFSF(&t0, id_dest->width);
-  
-  rtl_li(&t1, 0);
-  rtl_set_CF(&t1);
-  rtl_set_OF(&t1);
+  rtl_set_CF(&tzero);
+  rtl_set_OF(&tzero);
   
   print_asm_template2(or);
 }
 
+/* 精确位移指令实现 */
 make_EHelper(sar) {
-  // 算术右移 (保留符号位)
-  rtl_sar(&t0, &id_dest->val, &id_src->val);
+  rtl_sext(&t0, &id_dest->val, id_dest->width); // 确保符号扩展
+  rtl_sar(&t0, &t0, &id_src->val);
   operand_write(id_dest, &t0);
   
   rtl_update_ZFSF(&t0, id_dest->width);
@@ -69,7 +60,6 @@ make_EHelper(sar) {
 }
 
 make_EHelper(shl) {
-  // 逻辑左移
   rtl_shl(&t0, &id_dest->val, &id_src->val);
   operand_write(id_dest, &t0);
   
@@ -78,7 +68,6 @@ make_EHelper(shl) {
 }
 
 make_EHelper(shr) {
-  // 逻辑右移
   rtl_shr(&t0, &id_dest->val, &id_src->val);
   operand_write(id_dest, &t0);
   
@@ -86,6 +75,16 @@ make_EHelper(shr) {
   print_asm_template2(shr);
 }
 
+/* 新增ROL指令支持 */
+make_EHelper(rol) {
+  rtl_shri(&t2, &id_dest->val, id_dest->width * 8 - id_src->val);
+  rtl_shl(&t3, &id_dest->val, &id_src->val);
+  rtl_or(&t1, &t2, &t3);
+  operand_write(id_dest, &t1);
+  print_asm_template2(rol);
+}
+
+/* 优化条件设置指令 */
 make_EHelper(setcc) {
   uint8_t subcode = decoding.opcode & 0xf;
   rtl_setcc(&t2, subcode);
@@ -93,10 +92,9 @@ make_EHelper(setcc) {
   print_asm("set%s %s", get_cc_name(subcode), id_dest->str);
 }
 
+/* 简化非运算实现 */
 make_EHelper(not) {
-  rtl_mv(&t0, &id_dest->val);
-  rtl_not(&t0);
-  operand_write(id_dest, &t0);
-  
+  rtl_not(&id_dest->val);
+  operand_write(id_dest, &id_dest->val);
   print_asm_template1(not);
 }

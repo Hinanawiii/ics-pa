@@ -8,13 +8,9 @@
 #include <readline/history.h>
 
 void cpu_exec(uint64_t);
-static int cmd_si(char *args) ;
-static int cmd_info(char *args);
-static int cmd_x(char *args);
-static int cmd_p(char *args);
-static int cmd_w(char *args);
-static int cmd_d(char *args);
-
+WP* new_wp();
+void free_wp(int wpid);
+void info_watchpoint();
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
   static char *line_read = NULL;
@@ -43,7 +39,12 @@ static int cmd_q(char *args) {
 }
 
 static int cmd_help(char *args);
-
+static int cmd_si(char *args);
+static int cmd_info(char *args);
+static int cmd_x(char *args);
+static int cmd_p(char *args);
+static int cmd_w(char *args);
+static int cmd_d(char *args);
 static struct {
   char *name;
   char *description;
@@ -52,15 +53,18 @@ static struct {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
-
   /* TODO: Add more commands */
-  {"si", "Step through N instructions", cmd_si},
-  { "info", "Print program status", cmd_info },
-  { "x", "Scan memory", cmd_x },
-  {"p", "Evaluate expression", cmd_p},
-{"w", "Set watchpoint", cmd_w},
-{"d", "Delete watchpoint", cmd_d},
+  { "si", "Let the program execute N instructions step by step", cmd_si },
+  { "info", "Print registers' status for r, checkpoint informations for w", cmd_info },
+  { "x", "Scan the consecutive 4N bytes from Address EXPR", cmd_x },
+  { "p", "Calculate the expression's value", cmd_p },
+  { "w", "Set watchpoint i.e. pause the program until the EXPR's value changes", cmd_w },
+  { "d", "Delete the watchpoint which number is N", cmd_d }
+
+
+
+  
+
 };
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
@@ -86,153 +90,6 @@ static int cmd_help(char *args) {
     printf("Unknown command '%s'\n", arg);
   }
   return 0;
-}
-
-static int cmd_si(char *args){
-
-  char *arg = strtok(NULL, " ");
-  int steps = 1;  // default value
-  
-  if (arg != NULL) {
-    steps = atoi(arg);
-    if (steps <= 0) {
-      printf("Invalid step count: %s\n", args);
-      printf("Invalid number of steps. Using default (1).\n");
-      steps = 1;
-    }
-  }
-  
-  printf("Executing %d step(s)...\n", steps);
-  cpu_exec(steps);
-  return 0;
-
-}
-
-static int cmd_info(char *args)
-{
-  char *arg = strtok(NULL, " ");
-  if (arg == NULL) {
-    printf("Try 'r' for registers or 'w' for watchpoints.\n");
-    return 0;
-  }
-  
-  if (strcmp(arg, "r") == 0) {
-        // 打印完整寄存器视图
-        printf("-----------------------------------------\n");
-        printf("| %-4s | %-12s | %-4s | %-12s |\n", 
-            "32bit", "Value", "8bit", "Value");
-        
-        for (int i = 0; i < 8; i++) {
-            // 打印32位寄存器及其对应的16/8位寄存器
-            printf("|------|-------------|------|-------------|\n");
-            printf("| %-4s | 0x%08x  | %-4s | 0x%08x  |\n", 
-                regsl[i], reg_l(i),
-                regsb[i], reg_b(i));
-            
-            // 单独处理高位寄存器(AH,CH,DH,BH)
-            if (i < 4) { // 只有前4个寄存器有高位
-                printf("|      |             | %-4s | 0x%08x  |\n",
-                    regsb[i+4], (reg_l(i) >> 8) & 0xff);
-            }
-            
-            // 打印16位寄存器视图
-            printf("| %-4s | 0x%08x  |      |             |\n",
-                regsw[i], reg_w(i));
-        }
-        printf("-----------------------------------------\n");
-        
-        // 打印EIP
-        printf("eip: 0x%08x\n", cpu.eip);
-        return 0;
-    }
-  else if (strcmp(arg, "w") == 0)  {
-        WP *wp = head; // 现在head已正确声明
-        while (wp) {
-            printf("Watchpoint %d: %s = %u\n", wp->NO, wp->expr, wp->old_val);
-            wp = wp->next;
-        }
-    }//补全了打印监视点
-  else {
-    printf("Unknown info subcommand '%s'\n,retry", arg);
-  }
-  
-  return 0;
-}
-
-static int cmd_x(char *args) {
-    char *arg1 = strtok(args, " ");
-    char *arg2 = strtok(NULL, " ");
-    
-    if (arg1 == NULL || arg2 == NULL) {
-        printf("Usage: x N 0xADDR\n");
-        return 0;
-    }
-
-    int count = atoi(arg1);
-    if (count <= 0) {
-        printf("Invalid count: %s\n", arg1);
-        return 0;
-    }
-
-    // 只支持十六进制数字
-    uint32_t addr;
-    if (sscanf(arg2, "0x%x", &addr) != 1) {
-        printf("Invalid address format: %s\n", arg2);
-        return 0;
-    }
-
-    printf("Address    : Value\n");
-    printf("------------------\n");
-    for (int i = 0; i < count; i++) {
-        uint32_t value = vaddr_read(addr + i*4, 4); 
-        printf("0x%08x: 0x%08x\n", addr + i*4, value);
-    }
-    return 0;
-}
-
-static int cmd_p(char *args) {
-    if (args == NULL) {
-        printf("Usage: p EXPR\n");
-        return 0;
-    }
-    
-    bool success;
-    uint32_t result = expr(args, &success);
-    
-    if (success) {
-        printf("Result: %u (0x%08x)\n", result, result);
-    } else {
-        printf("Invalid expression: %s\n", args);
-    }
-    return 0;
-}
-
-static int cmd_w(char *args) {
-    WP *wp = new_wp();
-    strncpy(wp->expr, args, sizeof(wp->expr)-1);
-    wp->expr[sizeof(wp->expr)-1] = '\0';
-    
-    bool success;
-    wp->old_val = expr(args, &success);
-    if (!success) {
-        free_wp(wp);
-        printf("Invalid expression\n");
-    }
-    return 0;
-}
-
-static int cmd_d(char *args) {
-    int no = atoi(args);
-    WP *wp = head;
-    while (wp) {
-        if (wp->NO == no) {
-            free_wp(wp);
-            return 0;
-        }
-        wp = wp->next;
-    }
-    printf("No watchpoint number %d\n", no);
-    return 0;
 }
 
 void ui_mainloop(int is_batch_mode) {
@@ -272,4 +129,111 @@ void ui_mainloop(int is_batch_mode) {
 
     if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
   }
+}
+static int cmd_si(char *args){
+  char *arg = strtok(NULL, " ");
+  if(arg!=NULL){
+    cpu_exec(atoi(arg));
+  }
+  else{
+    cpu_exec(1);
+  }
+  return 0;
+}
+static int cmd_info(char *args){
+  char *arg = strtok(NULL, " ");
+  if(arg==NULL){
+    printf("args error in cmd_info\n");
+    return 0;
+  }
+  char s;
+  int nRet = sscanf(args, "%c", &s);
+  if(nRet<=0){
+    printf("args error in cmd_info\n");
+    return 0;
+  }
+  if(s == 'r'){
+    int i;
+    for(i=0;i<8;i++){
+      printf("%s        0x%x\n", regsl[i], reg_l(i));
+    }
+    printf("eip        0x%x\n", cpu.eip);
+    for(i=0;i<8;i++){
+      printf("%s        0x%x\n", regsw[i], reg_w(i));
+    }
+    for(i=0;i<8;i++){
+      printf("%s        0x%x\n", regsb[i], reg_b(i));
+    }
+  }
+  else if(s=='w'){
+    info_watchpoint();
+  }
+  return 0;
+}
+static int cmd_x(char *args){
+   char *arg1 = strtok(NULL, " ");
+  if(arg1==NULL){
+    printf("u shall input the parameter N to specify the consecutive N..\n");
+    return 0;
+  }
+  int i_arg1 = atoi(arg1);
+  char *arg2 = strtok(NULL, " ");
+  /* TODO: now i just implement the function given accurate number, must fix it in 1-2 or 1-3*/
+  if(arg2==NULL){
+    printf("u shall input the parameter EXPR must generate from keyboard input..!\n");
+    return 0;
+  }
+  uint32_t addr_begin = strtoul(arg2,NULL,16);
+  int i;
+  for(i=0;i<i_arg1;i++){
+    printf("0x%x ", vaddr_read(addr_begin,1));
+    addr_begin+=1;
+  }
+  printf("\n");
+  return 0;
+
+}
+static int cmd_p(char *args){
+  char *arg = strtok(NULL," ");
+  if(arg==NULL){
+    printf("please input the expression u wanna calculate..!\n");
+    return 0;
+  }
+  bool is_finish=true;
+  uint32_t ans = expr(arg,&is_finish);
+  if(!is_finish){
+    printf("please check your expression's format..!\n");
+  }
+  else{
+    printf("%d\n", ans);
+  }
+  return 0;
+}
+
+static int cmd_w(char *args){
+	if(args==NULL){
+		printf("please input expr again \n");
+		return 0;	
+	}	
+	else{
+		WP* wp=new_wp();
+		strcpy(wp->expr,args);
+		bool* success = malloc(4);
+		wp->expr_record_val=expr(args,success);
+		printf("watchpoint %d is set\n",wp->NO);
+		return 0;
+	}
+}
+
+static int cmd_d(char *args){
+	if(args==NULL){
+		printf("please input expr again \n");
+		return 0;	
+	}	
+	else{
+		int wpid=args[0]-'0';
+		free_wp(wpid);
+		printf("watchpoint %d is deleted\n",wpid);
+		return 0;
+	}
 }

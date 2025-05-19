@@ -1,14 +1,12 @@
 #include <am.h>
 #include <x86.h>
-#define RTC_PORT 0x48   // Note that this is not standard
+
+#define RTC_PORT 0x48
 #define I8042_DATA_PORT 0x60
 #define I8042_STATUS_PORT 0x64
 #define I8042_STATUS_HASKEY_MASK 0x1
-#define KEYBOARD_IRQ 1
 #define VMEM 0x40000
 
-#define SCREEN_H 300
-#define SCREEN_W 400
 static unsigned long boot_time;
 
 void _ioe_init() {
@@ -27,7 +25,7 @@ unsigned long _uptime() {
   return current_time - start_time;
 }
 
-uint32_t* const fb = (uint32_t *)0x40000;
+uint32_t* const fb = (uint32_t *)VMEM;
 
 _Screen _screen = {
   .width  = 400,
@@ -45,14 +43,12 @@ void _draw_rect(const uint32_t *pixels, int x, int y, int w, int h) {
 }
 
 void _draw_sync() {
-	 //update_screen();
+    // 保持空实现，与硬件同步逻辑由上层处理
 }
 
 int _read_key() {
-    if (inb(I8042_STATUS_PORT) & I8042_STATUS_HASKEY_MASK) {
-    // 如果有按键事件，则读取数据端口获取键码
+  if (inb(I8042_STATUS_PORT) & I8042_STATUS_HASKEY_MASK) {
     return inl(I8042_DATA_PORT);
-  } else {
-    return _KEY_NONE;
   }
+  return _KEY_NONE;
 }

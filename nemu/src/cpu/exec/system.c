@@ -2,7 +2,7 @@
 
 void diff_test_skip_qemu();
 void diff_test_skip_nemu();
-
+extern void raise_intr(uint8_t NO, vaddr_t ret_addr) ;
 make_EHelper(lidt) {
   // TODO();
   rtl_li(&t0, id_dest->addr);
@@ -16,6 +16,7 @@ make_EHelper(lidt) {
   Log("idtr.base=0x%x", cpu.idtr.base);
 #endif
   print_asm_template1(lidt);
+
 }
 
 make_EHelper(mov_r2cr) {
@@ -65,14 +66,11 @@ make_EHelper(int) {
 make_EHelper(iret) {
 
   rtl_pop(&decoding.jmp_eip);
-  decoding.jmp_eip = true;
-  // 使用临时变量解决类型不匹配问题
-  rtlreg_t cs_temp;
-  rtl_pop(&cs_temp);
-  cpu.cs = (uint16_t)cs_temp;
-  rtl_pop(&t0);
-  memcpy(&cpu.eflags, &t0, sizeof(cpu.eflags));
+  decoding.is_jmp = 1;
+  rtl_pop(&cpu.cs);
+  rtl_pop(&cpu.eflags.val);
   
+
   print_asm("iret");
 }
 
@@ -80,9 +78,7 @@ uint32_t pio_read(ioaddr_t, int);
 void pio_write(ioaddr_t, int, uint32_t);
 
 make_EHelper(in) {
-  uint32_t port_val = pio_read(id_src->val, id_dest->width);
-  //printf("Reading port 0x%x, width %d, value 0x%x\n", id_src->val, id_dest->width, port_val);
-  rtl_li(&t0, port_val);
+  rtl_li(&t0, pio_read(id_src->val, id_dest->width));
   operand_write(id_dest, &t0);
   print_asm_template2(in);
 #ifdef DIFF_TEST

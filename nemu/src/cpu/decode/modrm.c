@@ -2,7 +2,6 @@
 #include "cpu/rtl.h"
 
 void load_addr(vaddr_t *eip, ModR_M *m, Operand *rm) {
-//printf("load_addr开始: EIP=0x%x, mod=%d, R_M=%d\n", *eip, m->mod, m->R_M);
   assert(m->mod != 3);
 
   int32_t disp = 0;

@@ -3,6 +3,7 @@
 
 static void *pf = NULL;
 
+
 void* new_page(void) {
   assert(pf < (void *)_heap.end);
   void *p = pf;
@@ -13,11 +14,25 @@ void* new_page(void) {
 void free_page(void *p) {
   panic("not implement yet");
 }
-
-/* The brk() system call handler. */
+#define K4(va) (((uint32_t)(va)+0xfff) & ~0xfff)//使得虚拟地址以4K对齐，否则仙剑运行会出现错误
 int mm_brk(uint32_t new_brk) {
+  if(current->cur_brk == 0) {
+    current->cur_brk = current->max_brk = new_brk;
+  }
+  else {
+    if(new_brk > current->max_brk) {
+      uint32_t brk = K4(current->max_brk);
+      while(brk < new_brk) {
+        _map(&current->as, (void*)brk, new_page());
+        brk += PGSIZE;
+      }
+      current->max_brk = new_brk;
+    }
+    current->cur_brk = new_brk;
+  }
   return 0;
 }
+
 
 void init_mm() {
   pf = (void *)PGROUNDUP((uintptr_t)_heap.start);

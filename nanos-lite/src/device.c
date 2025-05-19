@@ -9,6 +9,9 @@ static const char *keyname[256] __attribute__((used)) = {
   _KEYS(NAME)
 };
 
+extern off_t fs_lseek(int fd, off_t offset, int whence);
+int current_game = 0;
+
 int screen_width() {
   return _screen.width;
 }
@@ -30,9 +33,13 @@ size_t events_read(void *buf, size_t len) {
 	}
 	else {
 		sprintf(buf, "%s %s\n", down ? "kd" : "ku", keyname[key]);
+		if(key == 13 && down) { // F12 DOWN
+			current_game = (current_game == 0 ? 1 : 0);
+			fs_lseek(5,0,0);
+		}
 		Log("Get key: %d %s %s\n", key, keyname[key], down ? "down" : "up");
 	}
-	return strlen(buf);//xxx strlen(buf)-1
+	return strlen(buf);
 }
 
 char dispinfo[128] __attribute__((used));
@@ -46,17 +53,12 @@ void fb_write(const void *buf, size_t offset, size_t len) {
 	int col = (offset/4)%_screen.width;
 	_draw_rect(buf,col,row,len/4,1);
 }
-void init_dispinfo() {
 
-  //int width = screen_width();
-  //int height = screen_height();
+void init_dispinfo() {
   sprintf(dispinfo, "WIDTH:%d\nHEIGHT:%d\n", screen_width(), screen_height());
 }
+
 void init_device() {
   _ioe_init();
-
-  // TODO: print the string to array `dispinfo` with the format
-  // described in the Navy-apps convention
-  
   init_dispinfo();
 }

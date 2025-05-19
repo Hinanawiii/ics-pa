@@ -25,6 +25,7 @@ static Finfo file_table[] __attribute__((used)) = {
 #include "files.h"
 };
 
+
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
 
 extern void ramdisk_read(void *buf, off_t offset, size_t len);
@@ -137,6 +138,7 @@ off_t fs_lseek(int fd, off_t offset, int whence) {
   
   return result;
 }
+
 
 int fs_close(int fd) {
   // 简单返回成功

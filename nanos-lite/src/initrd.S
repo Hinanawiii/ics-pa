@@ -3,4 +3,3 @@
 ramdisk_start:
 .incbin "build/ramdisk.img"
 ramdisk_end:
-

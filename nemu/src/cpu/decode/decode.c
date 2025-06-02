@@ -26,11 +26,9 @@ static inline make_DopHelper(I) {
  * the one above from the view of implementation. So we use another helper
  * function to decode it.
  */
-/* sign immediate */
 static inline make_DopHelper(SI) {
+  assert(op->width == 1 || op->width == 4);
 
-//  vaddr_t orig_eip = *eip;
-//  printf("SI解码开始: EIP=0x%x, 宽度=%d\n", orig_eip, op->width);
   op->type = OP_TYPE_IMM;
 
   /* TODO: Use instr_fetch() to read `op->width' bytes of memory
@@ -39,22 +37,18 @@ static inline make_DopHelper(SI) {
    *
    op->simm = ???
    */
-  uint32_t imm = instr_fetch(eip, op->width);
-  // 如果是1字节宽度，进行符号扩展
-//   printf("instr_fetch后: EIP=0x%x (增加了%d)\n", *eip, *eip - orig_eip);
-  if (op->width == 1) {
-    op->simm = (int32_t)(int8_t)imm;
-  } else {
-    op->simm = (int32_t)imm;
-  }
+
+
+  t0 = instr_fetch(eip,op->width);
+  rtl_sext(&t0,&t0,op->width);
+  op->simm = t0;
+
   rtl_li(&op->val, op->simm);
-//   printf("SI解码结束: EIP=0x%x (总增加了%d)\n", *eip, *eip - orig_eip);
 
 #ifdef DEBUG
   snprintf(op->str, OP_STR_SIZE, "$0x%x", op->simm);
 #endif
 }
-
 /* I386 manual does not contain this abbreviation.
  * It is convenient to merge them into a single helper function.
  */
@@ -112,10 +106,6 @@ static inline make_DopHelper(O) {
 #ifdef DEBUG
   snprintf(op->str, OP_STR_SIZE, "0x%x", op->addr);
 #endif
-}
-
-make_DHelper(none) {
-  // 无操作数需要解码
 }
 
 /* Eb <- Gb
@@ -209,42 +199,13 @@ make_DHelper(test_I) {
 }
 
 make_DHelper(SI2E) {
-//  vaddr_t orig_eip = *eip;
-//  printf("SI2E开始解码，EIP=0x%x\n", orig_eip);
-  
-/*  // 打印当前位置的几个字节，了解指令格式
-  for(int i=0; i<5; i++) {
-    uint8_t byte = vaddr_read(*eip + i, 1);
-    printf("  EIP+%d 字节: 0x%02x\n", i, byte);
-  }*/
-  
   assert(id_dest->width == 2 || id_dest->width == 4);
-  
-  // 解码 ModR/M 并追踪 EIP 变化
-//  vaddr_t pre_rm_eip = *eip;
   decode_op_rm(eip, id_dest, true, NULL, false);
-//  printf("  ModR/M解码后 EIP 从 0x%x 变为 0x%x (移动了 %d 字节)\n", 
-//         pre_rm_eip, *eip, (int)(*eip - pre_rm_eip));
-  
   id_src->width = 1;
-  
-  // 解码立即数并追踪 EIP 变化
-//  vaddr_t pre_imm_eip = *eip;
-//  uint8_t imm_byte = vaddr_read(*eip, 1);
-//  printf("  立即数位置: 0x%x, 值: 0x%02x\n", *eip, imm_byte);
-  
   decode_op_SI(eip, id_src, true);
-//  printf("  立即数解码后 EIP 从 0x%x 变为 0x%x (移动了 %d 字节)\n", 
-//         pre_imm_eip, *eip, (int)(*eip - pre_imm_eip));
-  
-//  printf("  解码后的源操作数值: 0x%x\n", id_src->val);
-  
   if (id_dest->width == 2) {
     id_src->val &= 0xffff;
   }
-  
-//  printf("SI2E解码完成，最终 EIP=0x%x (总共移动了 %d 字节)\n", 
-//         *eip, (int)(*eip - orig_eip));
 }
 
 make_DHelper(SI_E2G) {

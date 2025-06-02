@@ -12,27 +12,27 @@ static inline _RegSet* sys_exit(_RegSet *r){
 }
 
 static inline _RegSet* sys_write(_RegSet *r){
-  // //获取三个参数：fd buf len
-  // int fd = (int)SYSCALL_ARG2(r);
-  // char *buf = (char *)SYSCALL_ARG3(r);
-  // int len = (int)SYSCALL_ARG4(r);
-  // // Log("!");
-  // if(fd == 1 || fd == 2){
-  //   for(int i = 0; i < len; i++) {
-  //       _putc(buf[i]);
-  //   }
-  //   //根据man 返回len
-  //   SYSCALL_ARG1(r) = len;
-  // }
+   //获取三个参数：fd buf len
+   int fd = (int)SYSCALL_ARG2(r);
+   char *buf = (char *)SYSCALL_ARG3(r);
+   int len = (int)SYSCALL_ARG4(r);
+   // Log("!");
+   if(fd == 1 || fd == 2){
+     for(int i = 0; i < len; i++) {
+         _putc(buf[i]);
+     }
+     //根据man 返回len
+     SYSCALL_ARG1(r) = len;
+   }
 
-  // return NULL;
-
+   return NULL;
+	/*
   int fd = (int)SYSCALL_ARG2(r);
   char *buf = (char *)SYSCALL_ARG3(r);
   int len = (int)SYSCALL_ARG4(r);
   SYSCALL_ARG1(r) = fs_write(fd,buf,len);
   //Log("used sys_write!");
-  return NULL;
+  return NULL;*/
 }
 
 

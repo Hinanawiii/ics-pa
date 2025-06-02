@@ -8,8 +8,8 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
    		assert(0);
    	} //检查整个
     // 读取中断门描述符（64 位）
-    uint32_t low = vaddr_read(gate_addr, 4)&0xffff ;     
-    uint32_t high = vaddr_read(gate_addr + 4, 4)& 0xffff0000;
+    uint32_t low = vaddr_read(gate_addr, 4) & 0xffff ;     
+    uint32_t high = vaddr_read(gate_addr + 4, 4) & 0xffff0000;
 
     //if (!((high >> 8) & 1)) {
     //    panic("Interrupt gate not present! NO = %d", NO);
@@ -18,13 +18,10 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
     //uint32_t offset = (high & 0xFFFF0000) | (low & 0x0000FFFF);
 
     // 保存上下文
-    cpu.esp -= 4;
-    vaddr_write(cpu.esp, 4,  cpu.eflags.val);  
-    cpu.esp -= 4;
-    vaddr_write(cpu.esp, 4,  cpu.cs);       
-    cpu.esp -= 4;
-    vaddr_write(cpu.esp, 4,  ret_addr);    
-           
+    uint32_t t0 = cpu.cs;
+    rtl_push(&cpu.eflags.val);
+    rtl_push(&t0);
+    rtl_push(&ret_addr);
 
 		decoding.jmp_eip = high|low;
 		decoding.is_jmp = true;  
@@ -37,4 +34,5 @@ void raise_intr(uint8_t NO, vaddr_t ret_addr) {
 }
 
 void dev_raise_intr() {
+	cpu.INTR = true;
 }

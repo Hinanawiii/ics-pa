@@ -30,8 +30,7 @@ void cpu_exec(uint64_t n) {
 
 #ifdef DEBUG
     /* TODO: check watchpoints here. */
-    check_watchpoints();
-    if (nemu_state != NEMU_RUNNING) break;
+    check_watchpoint();
 
 #endif
 

@@ -30,7 +30,7 @@ int main() {
 #endif
 
   init_fs();
-	 load_prog("/bin/dummy");
+	 load_prog("/bin/pal");
   //uint32_t entry = loader(NULL, "/bin/pal");
   //Log("%x",entry);
   //((void (*)(void))entry)();

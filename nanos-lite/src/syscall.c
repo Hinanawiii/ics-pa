@@ -52,9 +52,9 @@ static inline _RegSet* sys_lseek(_RegSet *r) {
   SYSCALL_ARG1(r) = fs_lseek(fd,offset,whence);
   return NULL;
 }
-
+extern int mm_brk(uint32_t new_brk);
 static inline _RegSet* sys_brk(_RegSet *r){
-  SYSCALL_ARG1(r) = 0;//总是返回0
+  SYSCALL_ARG1(r) = mm_brk(SYSCALL_ARG2(r));
   //r->eax=0;
   return NULL;
 }

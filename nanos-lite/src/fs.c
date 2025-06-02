@@ -39,28 +39,20 @@ size_t fs_filesz(int fd) {
 }
 
 int fs_open(const char *pathname, int flags, int mode) {
-	//可读写所有文件，故忽略flags mode
-	Log("Pathname: %s", pathname);
+	Log("Path: %s", pathname);
 	int i;
- 
 	for (i = 0; i < NR_FILES; i++) {
-		//printf("file name: %s\n", file_table[i].name);
 		if (strcmp(file_table[i].name, pathname) == 0) {
-      //Log("file opened");
 			return i;
 		}
 	}
 	assert(0);
-  //Log("read over");
-
 	return -1;
 }
 
 ssize_t fs_read(int fd, void *buf, size_t len) {
 	ssize_t fs_size = fs_filesz(fd);
-	//if(file_table[fd].open_offset >= fs_size) //实际上不会出现这情况
-		//return 0;
-	if (file_table[fd].open_offset + len > fs_size) //偏移量不可以超过文件边界 超出部分舍弃
+	if (file_table[fd].open_offset + len > fs_size)
 		len = fs_size - file_table[fd].open_offset;
 	switch(fd) {
 		case FD_STDOUT:
@@ -68,18 +60,21 @@ ssize_t fs_read(int fd, void *buf, size_t len) {
 		case FD_STDIN:
 			return 0;
 		case FD_EVENTS:
-			len = events_read((void *)buf, len);
+			len = events_read((uint8_t*)buf, len);
+			return len;
+			//TODO
 			break;
 		case FD_DISPINFO:
-			dispinfo_read(buf, file_table[fd].open_offset, len);
-			file_table[fd].open_offset += len;	
+			dispinfo_read(buf,file_table[fd].open_offset, len);
+			file_table[fd].open_offset += len;
+			//TODO
 			break;
 		default:
-			ramdisk_read(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
-			file_table[fd].open_offset += len;
+			//TODO
+			ramdisk_read(buf,file_table[fd].disk_offset+file_table[fd].open_offset,len);
+			file_table[fd].open_offset +=len;
 			break;
 	}
-  //Log("file read over");
 	return len;
 }
 
@@ -88,65 +83,59 @@ ssize_t fs_write(int fd, const void *buf, size_t len) {
 	switch(fd) {
 		case FD_STDOUT:
 		case FD_STDERR:
-			// call _putc()
-			// 串口已被抽象成stdout stderr
 			for(int i = 0; i < len; i++) {
 				_putc(((char*)buf)[i]);
 			}
 			break;
 		case FD_FB:
-			// write to frame buffer 显存
-			// device.c:fb_write buff中len字节输出到屏幕上offest处
-			fb_write(buf, file_table[fd].open_offset, len);
-			file_table[fd].open_offset += len;
+			//TODO
+			fb_write((void*)buf,file_table[fd].open_offset,len);
+			file_table[fd].open_offset +=len;
+			return len;
 			break;
 		default:
-			// write to ramdisk
-			//if(file_table[fd].open_offset >= fs_size)
-				//return 0;	
-			if(file_table[fd].open_offset + len > fs_size)
-				len = fs_size - file_table[fd].open_offset;
-			// 对文件的真正读写
-			ramdisk_write(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
-			file_table[fd].open_offset += len;
-			//Log("offset = %d", file_table[fd].open_offset);
-			break;
+			//TODO
+      if (file_table[fd].open_offset + len > fs_size) {
+      	len = fs_size - file_table[fd].open_offset;
+      }
+      ramdisk_write(buf, file_table[fd].disk_offset + file_table[fd].open_offset, len);
+      file_table[fd].open_offset += len;
+      break;
 	}
-  //Log("file write over");
+  Log("file write over");
 
-	return len;// 参见man 返回值
+	return len;
 }
 
 off_t fs_lseek(int fd, off_t offset, int whence) {
 	off_t result = -1;
-	// fs.h
-	// man 2 lseek 同时注意边界问题
+	ssize_t fs_size = file_table[fd].size;
 	switch(whence) {
-		case SEEK_SET:
-			if (offset >= 0 && offset <= file_table[fd].size) {
-				file_table[fd].open_offset = offset;
-				result = file_table[fd].open_offset;
-			}
+    case SEEK_SET: // 从文件开头偏移
+        if (offset >= 0 && offset <= fs_size) {
+            file_table[fd].open_offset = offset;
+            result = file_table[fd].open_offset;
+        }
 			break;
 		case SEEK_CUR:
-			if ((offset + file_table[fd].open_offset >= 0) && (offset + file_table[fd].open_offset <= file_table[fd].size)) {
-				file_table[fd].open_offset += offset;
-				result = file_table[fd].open_offset;
-			}
+        if (file_table[fd].open_offset + offset >= 0 && 
+            file_table[fd].open_offset + offset <= fs_size) {
+            file_table[fd].open_offset += offset;
+            result = file_table[fd].open_offset;
+        }
 			break;
 		case SEEK_END:
-			file_table[fd].open_offset = file_table[fd].size + offset;
-			result = file_table[fd].open_offset;
+        file_table[fd].open_offset = fs_size + offset;
+        result = file_table[fd].open_offset; 
 			break;
+			Log("fil e seek over");
 	}
-	//Log("file seek over");
-
 	return result;
 }
 
 
 int fs_close(int fd) {
 	//fs_lseek(fd,0,SEEK_SET);
-  //Log("file closed");
+  Log("file closed");
 	return 0;
 }

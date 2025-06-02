@@ -28,14 +28,16 @@ int _open(const char *path, int flags, mode_t mode) {
 int _write(int fd, void *buf, size_t count) {
   return _syscall_(SYS_write, fd, buf, count);
 }
-extern char_end;
+extern char _end;//为了记录旧的brk，需要这个
 static intptr_t program_break=(intptr_t)&_end;
 void *_sbrk(intptr_t increment) {
+  
+  char *old_program_break = program_break;
+  
   // 调用SYS_brk系统调用来设置新的program_break
   if (_syscall_(SYS_brk, program_break + increment, 0, 0) == 0) {
     // 成功，更新program_break
     program_break += increment;
-    Log("used sys write");
     return old_program_break;
   }
   

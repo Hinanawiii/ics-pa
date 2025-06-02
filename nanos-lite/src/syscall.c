@@ -22,7 +22,7 @@ static inline _RegSet* sys_write(_RegSet *r){
      //根据man 返回len
      SYSCALL_ARG1(r) = len;
    }
-	 Log("used sys_write!");
+	 //Log("used sys_write!");
    return NULL;
 	/*
   int fd = (int)SYSCALL_ARG2(r);

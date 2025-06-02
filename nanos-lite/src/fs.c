@@ -42,9 +42,9 @@ int fs_open(const char *pathname, int flags, int mode) {
 	Log("Path: %s", pathname);
 	int i;
 	for (i = 0; i < NR_FILES; i++) {
-	  Log("filename:%s\n",file_table[i].name);
+	  //Log("filename:%s\n",file_table[i].name);
 		if (strcmp(file_table[i].name, pathname) == 0) {
-			 Log("file opened,i=%d,NR_FILES=%d",i,NR_FILES);
+			 //Log("file opened,i=%d,NR_FILES=%d",i,NR_FILES);
 			return i;
 		}
 	}
@@ -74,7 +74,7 @@ ssize_t fs_read(int fd, void *buf, size_t len) {
 			break;
 		default:
 			//TODO
-			Log("buf=%p,disk_offset=%p,open_offset=%p,len=%d,fd=%d",buf,file_table[fd].disk_offset,file_table[fd].open_offset,len);
+			//Log("buf=%p,disk_offset=%p,open_offset=%p,len=%d,fd=%d",buf,file_table[fd].disk_offset,file_table[fd].open_offset,len);
 			ramdisk_read(buf,file_table[fd].disk_offset+file_table[fd].open_offset,len);
 			file_table[fd].open_offset +=len;
 			break;

@@ -96,22 +96,23 @@ void _map(_Protect *p, void *va, void *pa) {
 void _unmap(_Protect *p, void *va) {
 }
 
-_RegSet *_umake(_Protect *p, _Area ustack, _Area kstack,
-                void *entry, char *const argv[], char *const envp[]) {
-                
-  uint32_t *stack_top = (uint32_t *)ustack.end;
-  
-  stack_top -= 2;
-  stack_top[0] = 0; 
-  stack_top[1] = 0;  
+_RegSet *_umake(_Protect *p, _Area ustack, _Area kstack, void *entry, char *const argv[], char *const envp[]) {
+   //extern void *memcpy(void *,const void*,int);
+  int arg1=0;
+  char *arg2=NULL;
+  memcpy((void*)ustack.end-4,(void*)arg2,4);
+  memcpy((void*)ustack.end-8,(void*)arg2,4);
+  memcpy((void*)ustack.end-12,(void*)arg1,4);
+  memcpy((void*)ustack.end-16,(void*)arg1,4);
+  //trapframe
+  _RegSet tf;
+  tf.eflags=0x02;//|FL_IF;
+  tf.cs=8;
+  tf.eip=(uintptr_t)entry;//返回地址为entry
+  void *ptf=(void*)(ustack.end-16-sizeof(_RegSet));//tf的基址
+  memcpy(ptf,(void*)&tf,sizeof(_RegSet));//把tf压栈
 
-  // 然后分配 trap frame
-  _RegSet *tf = (_RegSet *)((uintptr_t)stack_top - sizeof(_RegSet));
-  memset(tf, 0, sizeof(_RegSet)); 
-  tf->eip = (uintptr_t)entry;     
-  tf->esp = (uintptr_t)stack_top;
-  tf->cs = 8;  // 保证 differential testing 正确
-  tf->eflags = 0x02; // IF=1，表示开启中断（常规初始化）
+    return (_RegSet*)ptf;
 
-  return tf;
+
 }

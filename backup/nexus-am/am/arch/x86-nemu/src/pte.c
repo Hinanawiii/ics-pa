@@ -66,11 +66,52 @@ void _switch(_Protect *p) {
 }
 
 void _map(_Protect *p, void *va, void *pa) {
+    // 获取页目录基地址（物理地址）
+    PDE *pdir = (PDE *)p->ptr;
+    
+    // 从虚拟地址提取索引
+    uint32_t vaddr = (uint32_t)va;
+    uint32_t pd_index = (vaddr >> 22) & 0x3FF;   // 页目录索引（高10位）
+    uint32_t pt_index = (vaddr >> 12) & 0x3FF;    // 页表索引（中10位）
+    
+    
+    PTE *pt = NULL;
+    
+    if (pdir[pd_index] & PTE_P) {
+        // 页表已存在：获取页表基地址
+        pt = (PTE *)(pdir[pd_index] & 0xFFFFF000);
+    } else {
+        // 页表不存在：分配新页表
+        pt = (PTE *)palloc_f();  // 获取一页物理内存
+        
+				pdir[pd_index] = ((uint32_t)pt & 0xFFFFF000) | PTE_P;
+        }
+         
+    
+    // 写入页表项
+    pt[pt_index] = ((uint32_t)pa & 0xFFFFF000) | PTE_P;
 }
 
 void _unmap(_Protect *p, void *va) {
 }
 
 _RegSet *_umake(_Protect *p, _Area ustack, _Area kstack, void *entry, char *const argv[], char *const envp[]) {
-  return NULL;
+  extern void *memcpy(void *,const void*,int);
+  int arg1=0;
+  char *arg2=NULL;
+  memcpy((void*)ustack.end-4,(void*)arg2,4);
+  memcpy((void*)ustack.end-8,(void*)arg2,4);
+  memcpy((void*)ustack.end-12,(void*)arg1,4);
+  memcpy((void*)ustack.end-16,(void*)arg1,4);
+  //trapframe
+  _RegSet tf;
+  tf.eflags=0x02;//|FL_IF;
+  tf.cs=8;
+  tf.eip=(uintptr_t)entry;//返回地址为entry
+  void *ptf=(void*)(ustack.end-16-sizeof(_RegSet));//tf的基址
+  memcpy(ptf,(void*)&tf,sizeof(_RegSet));//把tf压栈
+
+    return (_RegSet*)ptf;
+
+
 }

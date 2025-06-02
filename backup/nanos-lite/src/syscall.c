@@ -12,25 +12,13 @@ static inline _RegSet* sys_exit(_RegSet *r){
 }
 
 static inline _RegSet* sys_write(_RegSet *r){
-   int fd = (int)SYSCALL_ARG2(r);
-   char *buf = (char *)SYSCALL_ARG3(r);
-   int len = (int)SYSCALL_ARG4(r);
-   if(fd == 1 || fd == 2){
-     for(int i = 0; i < len; i++) {
-         _putc(buf[i]);
-     }
-     //根据man 返回len
-     SYSCALL_ARG1(r) = len;
-   }
-	 //Log("used sys_write!");
-   return NULL;
-	/*
+	
   int fd = (int)SYSCALL_ARG2(r);
   char *buf = (char *)SYSCALL_ARG3(r);
   int len = (int)SYSCALL_ARG4(r);
   SYSCALL_ARG1(r) = fs_write(fd,buf,len);
 
-  return NULL;*/
+  return NULL;
 }
 
 
@@ -64,9 +52,9 @@ static inline _RegSet* sys_lseek(_RegSet *r) {
   SYSCALL_ARG1(r) = fs_lseek(fd,offset,whence);
   return NULL;
 }
-
+extern int mm_brk(uint32_t new_brk);
 static inline _RegSet* sys_brk(_RegSet *r){
-  SYSCALL_ARG1(r) = 0;//总是返回0
+  SYSCALL_ARG1(r) = mm_brk(SYSCALL_ARG2(r));
   //r->eax=0;
   return NULL;
 }

@@ -1,5 +1,4 @@
 #include <x86.h>
-#include <string.h>
 
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
 
@@ -97,7 +96,7 @@ void _unmap(_Protect *p, void *va) {
 }
 
 _RegSet *_umake(_Protect *p, _Area ustack, _Area kstack, void *entry, char *const argv[], char *const envp[]) {
-   //extern void *memcpy(void *,const void*,int);
+  extern void *memcpy(void *,const void*,int);
   int arg1=0;
   char *arg2=NULL;
   memcpy((void*)ustack.end-4,(void*)arg2,4);

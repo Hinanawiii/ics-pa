@@ -46,6 +46,7 @@ static inline _RegSet* sys_read(_RegSet *r) {
   int fd = (int)SYSCALL_ARG2(r);
   char *buf = (char *)SYSCALL_ARG3(r);
   int len = (int)SYSCALL_ARG4(r);
+  Log("Calling fs_read with fd=%d", fd);
   SYSCALL_ARG1(r) = fs_read(fd,buf,len);
   return NULL;
 }

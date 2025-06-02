@@ -6,7 +6,6 @@
 #include <time.h>
 #include "syscall.h"
 
-
 // TODO: discuss with syscall interface
 #ifndef __ISA_NATIVE__
 
@@ -23,42 +22,27 @@ void _exit(int status) {
 }
 
 int _open(const char *path, int flags, mode_t mode) {
-  return _syscall_(SYS_open, (uintptr_t)path, flags, mode);
+  _exit(SYS_open);
 }
 
 int _write(int fd, void *buf, size_t count){
-  //_exit(SYS_write);
-  return _syscall_(SYS_write, fd, (uintptr_t)buf, count);
+  _exit(SYS_write);
 }
 
-
-extern char _end;//为了记录旧的brk，需要这个
-static intptr_t brk = (intptr_t)&_end;
 void *_sbrk(intptr_t increment){
-  intptr_t old_brk = brk;
-  intptr_t new_brk = old_brk + increment;
-
-  if(_syscall_(SYS_brk,new_brk,0,0) == 0){
-    brk = new_brk;
-    return (void*)old_brk;
-  }
   return (void *)-1;
 }
 
 int _read(int fd, void *buf, size_t count) {
-  //_exit(SYS_read);
-    return _syscall_(SYS_read, fd, (uintptr_t)buf, count);
-
+  _exit(SYS_read);
 }
 
 int _close(int fd) {
-  //_exit(SYS_close);
-   return _syscall_(SYS_close, fd, 0, 0);
+  _exit(SYS_close);
 }
 
 off_t _lseek(int fd, off_t offset, int whence) {
-  //_exit(SYS_lseek);
-  return _syscall_(SYS_lseek, fd, offset, whence);
+  _exit(SYS_lseek);
 }
 
 // The code below is not used by Nanos-lite.

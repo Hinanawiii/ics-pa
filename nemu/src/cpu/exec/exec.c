@@ -1,6 +1,6 @@
 #include "cpu/exec.h"
 #include "all-instr.h"
-
+void raise_intr(uint8_t NO, vaddr_t ret_addr);
 typedef struct {
   DHelper decode;
   EHelper execute;
@@ -147,7 +147,7 @@ opcode_entry opcode_table [512] = {
   /* 0x14 */	EMPTY, EMPTY, EMPTY, EMPTY,
   /* 0x18 */	EMPTY, EMPTY, EMPTY, EMPTY,
   /* 0x1c */	EMPTY, EMPTY, EMPTY, EMPTY,
-  /* 0x20 */	IDEX(G2E, mov_cr2r), EMPTY, IDEX(E2G, mov_r2cr), EMPTY,
+/* 0x20 */	IDEX(G2E, mov_cr2r), EMPTY, IDEX(E2G, mov_r2cr), EMPTY,
   /* 0x24 */	EMPTY, EMPTY, EMPTY, EMPTY,
   /* 0x28 */	EMPTY, EMPTY, EMPTY, EMPTY,
   /* 0x2c */	EMPTY, EMPTY, EMPTY, EMPTY,
@@ -222,7 +222,7 @@ make_EHelper(real) {
 static inline void update_eip(void) {
   cpu.eip = (decoding.is_jmp ? (decoding.is_jmp = 0, decoding.jmp_eip) : decoding.seq_eip);
 }
-
+#define TIMER_IRQ 0x32
 void exec_wrapper(bool print_flag) {
 #ifdef DEBUG
   decoding.p = decoding.asm_buf;
@@ -247,9 +247,17 @@ void exec_wrapper(bool print_flag) {
 #endif
 
   update_eip();
-
+if (cpu.INTR & cpu.eflags.IF) {
+ // printf("raise a time irq!\n");
+  cpu.INTR = false;
+  raise_intr(TIMER_IRQ, cpu.eip);
+  update_eip();
+}
 #ifdef DIFF_TEST
   void difftest_step(uint32_t);
   difftest_step(eip);
 #endif
+
+
+
 }

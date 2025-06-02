@@ -2,7 +2,7 @@
 #include "memory.h"
 
 static void *pf = NULL;
-#define K4(va) (((uint32_t)(va)+0xfff) & ~0xfff)
+
 void* new_page(void) {
   assert(pf < (void *)_heap.end);
   void *p = pf;
@@ -13,29 +13,34 @@ void* new_page(void) {
 void free_page(void *p) {
   panic("not implement yet");
 }
-
-/* The brk() system call handler. */
+#define K4(va) (((uint32_t)(va)+0xfff) & ~0xfff)//使得虚拟地址以4K对齐，否则仙剑运行会出现错误
 int mm_brk(uint32_t new_brk) {
-  if (current->cur_brk == 0) {
+  if(current->cur_brk == 0)
+  {
     current->cur_brk = current->max_brk = new_brk;
   }
-  else {
-if (new_brk > current->max_brk) {
-  uint32_t va = K4(current->max_brk);
-  uint32_t end = new_brk;
-
-  for (; va < end; va += PGSIZE) {
-    	void *pa = new_page();
-    	assert(pa != NULL);
-    	_map(&current->as, (void *)va,pa);
-  	}
-	}
-  current->max_brk = new_brk;
-	}
+  else
+  {
+    if(new_brk > current->max_brk)
+    {
+      uint32_t brk = K4(current->max_brk);
+      while(brk<new_brk)
+      {
+        _map(&current->as,(void*)brk,new_page());//new_page获得的物理页地址一定是按4K对齐的，
+                                                //按照我的_map函数的实现方式，brk也一定要按4K对齐！
+        brk += PGSIZE;
+      }
+      current->max_brk = new_brk;
+    }
+    current->cur_brk = new_brk;
+  }
   return 0;
-	}
+}
+
+
 void init_mm() {
   pf = (void *)PGROUNDUP((uintptr_t)_heap.start);
   Log("free physical pages starting from %p", pf);
+
   _pte_init(new_page, free_page);
 }

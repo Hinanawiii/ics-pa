@@ -7,7 +7,8 @@ static const char *keyname[256] __attribute__((used)) = {
   [_KEY_NONE] = "NONE",
   _KEYS(NAME)
 };
-//int current_game = 0;
+int current_game = 0;
+extern off_t fs_lseek(int fd, off_t offset, int whence);
 size_t events_read(void *buf, size_t len) {
   //return 0;
 	int key = _read_key();
@@ -22,9 +23,11 @@ size_t events_read(void *buf, size_t len) {
 	}
 	else {
 		sprintf(buf, "%s %s\n", down ? "kd" : "ku", keyname[key]);
-		// if(key == 13 && down) { //F12 DOWN
-		// 	current_game = (current_game == 0 ? 1 : 0);
-		// }
+		if(key == 13 && down) { //F12 DOWN
+			current_game = (current_game == 0 ? 1 : 0);
+						// printf("%s\n",dispinfo);
+			 fs_lseek(5,0,0);//将/proc/dispinfo文件的偏移量归零，否则会报错
+		}
 		Log("Get key: %d %s %s\n", key, keyname[key], down ? "down" : "up");
 	}
 	return strlen(buf);//xxx strlen(buf)-1

@@ -20,7 +20,13 @@ void serial_io_handler(ioaddr_t addr, int len, bool is_write) {
         fflush(stdout);
       }
     }
-  }
+  }else {
+    // 处理读操作（返回设备状态）
+    if (addr == SERIAL_PORT + LSR_OFFSET) {
+      // 确保读取LSR寄存器时返回0x20
+      serial_port_base[LSR_OFFSET] = 0x20;
+    }
+    }
 }
 
 void init_serial() {

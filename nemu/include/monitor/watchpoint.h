@@ -2,21 +2,24 @@
 #define __WATCHPOINT_H__
 
 #include "common.h"
+#include "monitor/monitor.h"
 
 typedef struct watchpoint {
-    int NO;         // 监视点编号
-    int hitNum;     // 触发次数
-    char expr[32];     // 监视表达式
-    int result;   // 原始值
-    struct watchpoint *next;  // 指向下一个监视点的指针
-    uint32_t expr_record_val;
-  
+  int NO;
+  struct watchpoint *next;
 
   /* TODO: Add more members if necessary */
-
+  
+  char expr[128];
+  //表达式字符串
+	uint32_t old_val;   // 旧值
 
 } WP;
-void info_watchpoint();
-bool check_watchpoint();
 
+
+void check_watchpoints(void);
+WP *new_wp(void);
+void free_wp(WP *wp);
+void check_watchpoints(void);
+extern WP *head;
 #endif

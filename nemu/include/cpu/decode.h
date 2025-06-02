@@ -87,6 +87,9 @@ make_DHelper(E);
 make_DHelper(gp7_E);
 make_DHelper(test_I);
 make_DHelper(SI);
+
+make_DHelper(none); // 声明空解码器
+
 make_DHelper(G2E);
 make_DHelper(E2G);
 

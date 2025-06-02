@@ -9,6 +9,7 @@ include Makefile.git
 .DEFAULT_GOAL = app
 
 # Compilation flags
+CFLAGS=-std=gnu99
 CC = gcc
 LD = gcc
 INCLUDES  = $(addprefix -I, $(INC_DIR))

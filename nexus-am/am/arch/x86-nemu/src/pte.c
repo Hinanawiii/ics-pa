@@ -1,4 +1,5 @@
 #include <x86.h>
+#include <string.h>
 
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
 
@@ -95,6 +96,22 @@ void _map(_Protect *p, void *va, void *pa) {
 void _unmap(_Protect *p, void *va) {
 }
 
-_RegSet *_umake(_Protect *p, _Area ustack, _Area kstack, void *entry, char *const argv[], char *const envp[]) {
-  return NULL;
+_RegSet *_umake(_Protect *p, _Area ustack, _Area kstack,
+                void *entry, char *const argv[], char *const envp[]) {
+                
+  uint32_t *stack_top = (uint32_t *)ustack.end;
+  
+  stack_top -= 2;
+  stack_top[0] = 0; 
+  stack_top[1] = 0;  
+
+  // 然后分配 trap frame
+  _RegSet *tf = (_RegSet *)((uintptr_t)stack_top - sizeof(_RegSet));
+  memset(tf, 0, sizeof(_RegSet)); 
+  tf->eip = (uintptr_t)entry;     
+  tf->esp = (uintptr_t)stack_top;
+  tf->cs = 8;  // 保证 differential testing 正确
+  tf->eflags = 0x02; // IF=1，表示开启中断（常规初始化）
+
+  return tf;
 }

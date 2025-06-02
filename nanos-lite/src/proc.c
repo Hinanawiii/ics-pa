@@ -27,5 +27,12 @@ void load_prog(const char *filename) {
 }
 
 _RegSet* schedule(_RegSet *prev) {
+  if (current != NULL) {
+    current->tf = prev;
+  }
+
+  // 当前系统只有一个用户进程，直接切换回它
+  current = &pcb[0];
+  _switch(&current->as);
   return NULL;
 }

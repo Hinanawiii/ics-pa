@@ -40,7 +40,7 @@ size_t fs_filesz(int fd) {
 
 int fs_open(const char *pathname, int flags, int mode) {
 
-	Log("Path: %s", pathname);
+	//Log("Path: %s", pathname);
 	int i;
 	for (i = 0; i < NR_FILES; i++) {
 	  //Log("filename:%s\n",file_table[i].name);

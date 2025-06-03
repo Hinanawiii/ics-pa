@@ -34,5 +34,5 @@ _RegSet* schedule(_RegSet *prev) {
   // 当前系统只有一个用户进程，直接切换回它
   current = &pcb[0];
   _switch(&current->as);
-  return NULL;
+  return current -> tf;
 }

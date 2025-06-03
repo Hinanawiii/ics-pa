@@ -31,6 +31,7 @@ int main() {
 
   init_fs();
 	 load_prog("/bin/pal");
+		 load_prog("/bin/hello");
   //uint32_t entry = loader(NULL, "/bin/pal");
   //Log("%x",entry);
   //((void (*)(void))entry)();

@@ -141,6 +141,6 @@ off_t fs_lseek(int fd, off_t offset, int whence) {
 
 int fs_close(int fd) {
 	//fs_lseek(fd,0,SEEK_SET);
-  Log("file closed");
+  //Log("file closed");
 	return 0;
 }

@@ -66,28 +66,37 @@ void _switch(_Protect *p) {
 }
 
 void _map(_Protect *p, void *va, void *pa) {
-  PDE *pdir = p->ptr;
-  uint32_t pd_index = ((uint32_t)va) >> 22 & 0x3ff;
-  PTE *pt = NULL;
-  uint32_t pt_index = ((uint32_t)va) >> 12 & 0x3ff;
-  
-  if (pdir[pd_index] & PTE_P) {
-    pt = (PTE *)(pdir[pd_index] & ~0xfff);
-  } else {
-    pt = (PTE *)palloc_f();
-    pdir[pd_index] = ((uint32_t)pt & ~0xfff) | PTE_P;
-  }
-
-  pt[pt_index] = ((uint32_t)pa & ~0xfff) | PTE_P;
+    // 获取页目录基地址（物理地址）
+    PDE *pdir = (PDE *)p->ptr;
+    
+    // 从虚拟地址提取索引
+    uint32_t vaddr = (uint32_t)va;
+    uint32_t pd_index = (vaddr >> 22) & 0x3FF;   // 页目录索引（高10位）
+    uint32_t pt_index = (vaddr >> 12) & 0x3FF;    // 页表索引（中10位）
+    
+    
+    PTE *pt = NULL;
+    
+    if (pdir[pd_index] & PTE_P) {
+        // 页表已存在：获取页表基地址
+        pt = (PTE *)(pdir[pd_index] & 0xFFFFF000);
+    } else {
+        // 页表不存在：分配新页表
+        pt = (PTE *)palloc_f();  // 获取一页物理内存
+        
+				pdir[pd_index] = ((uint32_t)pt & 0xFFFFF000) | PTE_P;
+        }
+         
+    
+    // 写入页表项
+    pt[pt_index] = ((uint32_t)pa & 0xFFFFF000) | PTE_P;
 }
-
 
 void _unmap(_Protect *p, void *va) {
 }
 
 _RegSet *_umake(_Protect *p, _Area ustack, _Area kstack, void *entry, char *const argv[], char *const envp[]) {
-   extern void *memcpy(void *,const void*,int);
-  //设置_start()的栈帧
+  extern void *memcpy(void *,const void*,int);
   int arg1=0;
   char *arg2=NULL;
   memcpy((void*)ustack.end-4,(void*)arg2,4);

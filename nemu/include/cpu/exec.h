@@ -44,11 +44,58 @@ static inline const char* get_cc_name(int subcode) {
 #define print_asm_template1(instr) \
   print_asm(str(instr) "%c %s", suffix_char(id_dest->width), id_dest->str)
 
-
 #define print_asm_template2(instr) \
   print_asm(str(instr) "%c %s,%s", suffix_char(id_dest->width), id_src->str, id_dest->str)
 
 #define print_asm_template3(instr) \
   print_asm(str(instr) "%c %s,%s,%s", suffix_char(id_dest->width), id_src->str, id_src2->str, id_dest->str)
+make_EHelper(add);
+make_EHelper(inc);
+make_EHelper(sub);
+make_EHelper(dec);
+make_EHelper(cmp);
+make_EHelper(neg);
+make_EHelper(adc);
+make_EHelper(sbb);
+make_EHelper(mul);
+make_EHelper(imul1);
+make_EHelper(imul2);
+make_EHelper(imul3);
+make_EHelper(div);
+make_EHelper(idiv);
 
+
+make_EHelper(push);
+make_EHelper(push_rm);
+make_EHelper(pop);
+make_EHelper(leave);
+make_EHelper(cwtl);
+make_EHelper(cltd);
+make_EHelper(movzx);
+make_EHelper(movsx);
+
+make_EHelper(lea);
+make_EHelper(ret);
+make_EHelper(call);
+make_EHelper(jmp);
+make_EHelper(call_rm);
+make_EHelper(jmp_rm);
+make_EHelper(jcc);
+make_EHelper(none);
+make_EHelper(nop);
+
+make_EHelper(not);
+make_EHelper(and);
+make_EHelper(or);
+make_EHelper(xor);
+make_EHelper(shl);
+make_EHelper(shr);
+make_EHelper(sar);
+make_EHelper(setcc);
+make_EHelper(test);
+
+make_EHelper(in);
+make_EHelper(out);
 #endif
+
+

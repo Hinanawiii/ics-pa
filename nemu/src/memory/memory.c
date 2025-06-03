@@ -33,9 +33,10 @@ void paddr_write(paddr_t addr, int len, uint32_t data) {
     mmio_write(addr, len, data, map_NO);
   }
 }
+
 paddr_t page_translate(vaddr_t addr, int rw) {
-  if (!cpu.cr0.protect_enable || !cpu.cr0.paging)
-    return addr;
+    if (!cpu.cr0.protect_enable || !cpu.cr0.paging)
+        return addr;
 
   PDE* pd = (PDE*)(cpu.cr3.val & 0xfffff000);
   int pd_index = (addr >> 22) & 0x3ff;
@@ -97,10 +98,3 @@ void vaddr_write(vaddr_t addr, int len, uint32_t data) {
   }
 }
 
-// uint32_t vaddr_read(vaddr_t addr, int len) {
-//   return paddr_read(addr, len);
-// }
-
-// void vaddr_write(vaddr_t addr, int len, uint32_t data) {
-//   paddr_write(addr, len, data);
-// }

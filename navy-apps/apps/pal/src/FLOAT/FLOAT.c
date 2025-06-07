@@ -3,13 +3,33 @@
 #include <assert.h>
 
 FLOAT F_mul_F(FLOAT a, FLOAT b) {
-  assert(0);
-  return 0;
+  //assert(0);
+  //return 0;
+  return ((int64_t)a * (int64_t)b) >> 16;
+
 }
 
 FLOAT F_div_F(FLOAT a, FLOAT b) {
-  assert(0);
-  return 0;
+
+  if(b!=0){
+    FLOAT x = Fabs(a);
+    FLOAT y = Fabs(b);
+    FLOAT ret = x / y;
+    x = x % y;
+
+    for (int i = 0; i < 16; i++) {
+      x <<= 1;
+      ret <<= 1;
+      if (x >= y) {
+        x -= y;
+        ret++;
+      }
+    }
+    if (((a ^ b) & 0x80000000) == 0x80000000) {
+      ret = -ret;
+    }
+    return ret;
+  }
 }
 
 FLOAT f2F(float a) {
@@ -22,14 +42,38 @@ FLOAT f2F(float a) {
    * stack. How do you retrieve it to another variable without
    * performing arithmetic operations on it directly?
    */
+  union {
+    float f;
+    uint32_t u;
+  } v = { a };
 
-  assert(0);
-  return 0;
+  uint32_t sign = v.u >> 31;
+  int32_t exp = ((v.u >> 23) & 0xFF) - 127;
+  uint32_t frac = v.u & 0x7FFFFF;
+  uint32_t mant = frac | 0x800000;  
+
+  int64_t res;
+
+  if (exp >= 0) {
+    if (exp > 7) {
+      res = (int64_t)mant << (exp - 7);
+    } else {
+      res = (int64_t)mant >> (7 - exp);
+    }
+  } else {
+    res = (int64_t)mant >> (-(exp - 7));
+  }
+  if (sign) res = -res;
+
+  return (FLOAT)res;  
+
 }
 
 FLOAT Fabs(FLOAT a) {
-  assert(0);
-  return 0;
+  if ((a & 0x80000000) == 0)
+    return a;
+  else
+    return -a;
 }
 
 /* Functions below are already implemented */

@@ -26,7 +26,6 @@ void _pte_init(void* (*palloc)(), void (*pfree)(void*)) {
 
   PTE *ptab = kptabs;
   for (i = 0; i < NR_KSEG_MAP; i ++) {
-	
     uint32_t pdir_idx = (uintptr_t)segments[i].start / (PGSIZE * NR_PTE);
     uint32_t pdir_idx_end = (uintptr_t)segments[i].end / (PGSIZE * NR_PTE);
     for (; pdir_idx < pdir_idx_end; pdir_idx ++) {
@@ -51,7 +50,7 @@ void _protect(_Protect *p) {
   PDE *updir = (PDE*)(palloc_f());
   p->ptr = updir;
   // map kernel space
- for (int i = 0; i < NR_PDE; i ++) {
+  for (int i = 0; i < NR_PDE; i ++) {
     updir[i] = kpdirs[i];
   }
 
@@ -67,50 +66,52 @@ void _switch(_Protect *p) {
 }
 
 void _map(_Protect *p, void *va, void *pa) {
-
-		
- uint32_t t_addr=(uint32_t)pa;
- uint32_t l_addr=(uint32_t)va;		
- uint32_t pde_offset=(l_addr>>22)&0x3ff;
- uint32_t pte_offset=(l_addr>>12)&0x3ff;
- 
- 
- uint32_t pde_addr=(uint32_t)p->ptr;
- //
- 
- uint32_t pte_addr=*((uint32_t *)(pde_addr)+pde_offset);
-
- if((pte_addr&0x1)==0){
-
-	//no pte,only pde
- pte_addr=(uint32_t)(palloc_f());
- for(int i=0;i<NR_PTE;i++){
- *((uint32_t *)(pte_addr)+i)=0;
- }
-
- *((uint32_t*)(pde_addr)+pde_offset)=pte_addr|0x1;
- *((uint32_t*)(pte_addr)+pte_offset)=t_addr|0x1;
- return;
- }
-
- *((uint32_t*)(pte_addr&0xfffff000)+pte_offset)=t_addr|0x1; 
- 
-
+    // 获取页目录基地址（物理地址）
+    PDE *pdir = (PDE *)p->ptr;
+    
+    // 从虚拟地址提取索引
+    uint32_t vaddr = (uint32_t)va;
+    uint32_t pd_index = (vaddr >> 22) & 0x3FF;   // 页目录索引（高10位）
+    uint32_t pt_index = (vaddr >> 12) & 0x3FF;    // 页表索引（中10位）
+    
+    
+    PTE *pt = NULL;
+    
+    if (pdir[pd_index] & PTE_P) {
+        // 页表已存在：获取页表基地址
+        pt = (PTE *)(pdir[pd_index] & 0xFFFFF000);
+    } else {
+        // 页表不存在：分配新页表
+        pt = (PTE *)palloc_f();  // 获取一页物理内存
+        
+				pdir[pd_index] = ((uint32_t)pt & 0xFFFFF000) | PTE_P;
+        }
+         
+    
+    // 写入页表项
+    pt[pt_index] = ((uint32_t)pa & 0xFFFFF000) | PTE_P;
 }
 
 void _unmap(_Protect *p, void *va) {
 }
 
 _RegSet *_umake(_Protect *p, _Area ustack, _Area kstack, void *entry, char *const argv[], char *const envp[]) {
+  extern void *memcpy(void *,const void*,int);
+  int arg1=0;
+  char *arg2=NULL;
+  memcpy((void*)ustack.end-4,(void*)arg2,4);
+  memcpy((void*)ustack.end-8,(void*)arg2,4);
+  memcpy((void*)ustack.end-12,(void*)arg1,4);
+  memcpy((void*)ustack.end-16,(void*)arg1,4);
+  //trapframe
+  _RegSet tf;
+  tf.eflags=0x02|FL_IF;
+  tf.cs=8;
+  tf.eip=(uintptr_t)entry;//返回地址为entry
+  void *ptf=(void*)(ustack.end-16-sizeof(_RegSet));//tf的基址
+  memcpy(ptf,(void*)&tf,sizeof(_RegSet));//把tf压栈
 
-	*((uint32_t*)(ustack.end)-1)=(uint32_t)0;
-	*((uint32_t*)(ustack.end)-2)=(uint32_t)0;
-    //eflag
-    *((uint32_t*)(ustack.end)-4)=((0x00000002)|(1<<9));
-    //cs
-	*((uint32_t*)(ustack.end)-5)=0x8;
-	//eip
-	*((uint32_t*)(ustack.end)-6)=(uint32_t)entry;
+    return (_RegSet*)ptf;
 
-  return (_RegSet*)((uint32_t*)(ustack.end)-16);
+
 }

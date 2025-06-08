@@ -40,7 +40,7 @@ size_t fs_filesz(int fd) {
 
 int fs_open(const char *pathname, int flags, int mode) {
 
-	Log("Path: %s", pathname);
+	//Log("Path: %s", pathname);
 	int i;
 	for (i = 0; i < NR_FILES; i++) {
 	  //Log("filename:%s\n",file_table[i].name);
@@ -107,7 +107,7 @@ ssize_t fs_write(int fd, const void *buf, size_t len) {
       file_table[fd].open_offset += len;
       break;
 	}
-  Log("file write over");
+  //Log("file write over");
 
 	return len;
 }
@@ -141,6 +141,6 @@ off_t fs_lseek(int fd, off_t offset, int whence) {
 
 int fs_close(int fd) {
 	//fs_lseek(fd,0,SEEK_SET);
-  Log("file closed");
+  //Log("file closed");
 	return 0;
 }

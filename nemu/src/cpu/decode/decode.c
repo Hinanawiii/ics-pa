@@ -26,7 +26,6 @@ static inline make_DopHelper(I) {
  * the one above from the view of implementation. So we use another helper
  * function to decode it.
  */
-/* sign immediate */
 static inline make_DopHelper(SI) {
   assert(op->width == 1 || op->width == 4);
 
@@ -38,17 +37,18 @@ static inline make_DopHelper(SI) {
    *
    op->simm = ???
    */
-  op->simm=instr_fetch(eip,op->width);
-  if(op->width==1){
-   op->simm=(int8_t)op->simm;
-  }
+
+
+  t0 = instr_fetch(eip,op->width);
+  rtl_sext(&t0,&t0,op->width);
+  op->simm = t0;
+
   rtl_li(&op->val, op->simm);
 
 #ifdef DEBUG
   snprintf(op->str, OP_STR_SIZE, "$0x%x", op->simm);
 #endif
 }
-
 /* I386 manual does not contain this abbreviation.
  * It is convenient to merge them into a single helper function.
  */
@@ -246,7 +246,7 @@ make_DHelper(gp2_Ib2E) {
 
 /* Ev <- GvIb
  * use for shld/shrd */
-make_DHelper(I_G2E) {
+make_DHelper(Ib_G2E) {
   decode_op_rm(eip, id_dest, true, id_src2, true);
   id_src->width = 1;
   decode_op_I(eip, id_src, true);
@@ -294,12 +294,6 @@ make_DHelper(out_a2I) {
   id_dest->width = 1;
   decode_op_I(eip, id_dest, true);
 }
-
-// make_DHelper(Ib_G2E) {
-//   decode_op_rm(eip, id_dest, true, id_src2, true);
-//   id_src->width = 1;
-//   decode_op_I(eip, id_src, true);
-// }
 
 make_DHelper(out_a2dx) {
   decode_op_a(eip, id_src, true);

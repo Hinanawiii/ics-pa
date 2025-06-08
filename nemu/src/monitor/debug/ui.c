@@ -2,13 +2,15 @@
 #include "monitor/expr.h"
 #include "monitor/watchpoint.h"
 #include "nemu.h"
-#include "cpu/reg.h"
+
 #include <stdlib.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
 void cpu_exec(uint64_t);
-
+WP* new_wp();
+void free_wp(int wpid);
+void info_watchpoint();
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 char* rl_gets() {
   static char *line_read = NULL;
@@ -36,134 +38,13 @@ static int cmd_q(char *args) {
   return -1;
 }
 
-static int cmd_si(char *args){
-       if(args==NULL){
-	     cpu_exec(1);
-		 return 0;
-	   }
-       else{
-	   int t=atoi(args);
-	  	 if(t<=0){
-	  	 printf("wrong parement!!\n");
-	  	 return 0;
-	  	 	}
-	  	 else{
-	   		cpu_exec(t);
-			return 0;
-	   		}
-	   }
-}
-
-static int cmd_info(char *args){
-		char s;
-		if(args==NULL){
-			printf("args error in cmd_info\n");
-			return 0;
-		
-		}
-		int ret=sscanf(args,"%c",&s);
-		if(ret<0){
-		 printf("args error\n");
-		 return 0;
-		}
-		if(s=='r'){
-				int i;
-
-				for(i=0;i<8;i++){
-				printf("%s  0x%x\n",regsl[i],reg_l(i));
-				}
-				printf("eip: 0x%X\n",cpu.eip);
-				for(i=0;i<8;i++){
-				 printf("%s  0x%x\n",regsw[i],reg_w(i));
-				}
-				for(i=0;i<8;i++){
-					printf("%s  0x%x\n",regsb[i],reg_b(i));
-				}
-				return 0;
-		}
-		else if(s=='w'){
-		  show_point();
-		 	return 0;
-		}
-		else{
-		 printf("args error!\n");
-		}
-		return 0;
-}
-
-static int cmd_x(char *args){
-   char* N=strtok(args," ");
-   if(strcmp(N,"")==0){
-   printf("arg error\n");
-   return 0;
-   }
-   char* EXPR=args+strlen(N)+1;
-   bool *success=malloc(1);
-   uint32_t linenumber;
-	if(strcmp(EXPR,"")==0){ linenumber=0;}
-   else{
-    linenumber=expr(EXPR,success);
-   }
-
-	uint32_t n=atoi(N);
-	uint32_t a;
-	printf("Memory:");
-
-   for(int i=0;i<n;i++){
-    a=vaddr_read(linenumber,4);
-     printf("\n0x%x: 0x%08x",linenumber,a);
-	 linenumber+=4;
-  }
-   printf("\n");
-	return 0;
-}
-
-static int cmd_p(char *args){
-	bool *success=malloc(1);
-   uint32_t res=expr(args,success);
-   if(*success)
-   printf("res:   %d\n",res);
-   else
-		printf("error\n");
-	return 0;
-}
-
-static int cmd_w(char *args){
-		char *EXPR=strtok(args," ");
-        WP *temp;
-		temp=new_wp();
-		printf("%d : ",temp->NO);
-        memcpy(temp->str,EXPR,strlen(EXPR));
-	    printf("%s\n ",temp->str);	
-		bool *success=malloc(1);
-        temp->value=expr(EXPR,success);
-		printf(" value:%d\n",temp->value);
-		if(success){
-		
-			return 0;
-		}
-		else{
-	    printf("error\n");	
-		 return 0;
-		}
-}
-
-static int cmd_d(char *args){
-   char *N=strtok(args," ");
-   int n=atoi(N);
-   bool t=free_wp(n);
-   if(t==false){
-      printf("error:no watchpoint:%d\n",n);
-   }
-   else{
-   		printf("success delete watchpoint:%d\n",n);
-   }
-   return 0;
-
-}
-
 static int cmd_help(char *args);
-
+static int cmd_si(char *args);
+static int cmd_info(char *args);
+static int cmd_x(char *args);
+static int cmd_p(char *args);
+static int cmd_w(char *args);
+static int cmd_d(char *args);
 static struct {
   char *name;
   char *description;
@@ -172,19 +53,19 @@ static struct {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-  {"si","single execute",cmd_si},
-  {"x","x N EXPR",cmd_x},
-  {"info","information",cmd_info},
-  {"w","watchpoint",cmd_w},
-  {"d","delete watchpoint",cmd_d},
-  {"p","p expr",cmd_p},
   /* TODO: Add more commands */
+  { "si", "Let the program execute N instructions step by step", cmd_si },
+  { "info", "Print registers' status for r, checkpoint informations for w", cmd_info },
+  { "x", "Scan the consecutive 4N bytes from Address EXPR", cmd_x },
+  { "p", "Calculate the expression's value", cmd_p },
+  { "w", "Set watchpoint i.e. pause the program until the EXPR's value changes", cmd_w },
+  { "d", "Delete the watchpoint which number is N", cmd_d }
+
+
+
+  
 
 };
-
-
-
-
 
 #define NR_CMD (sizeof(cmd_table) / sizeof(cmd_table[0]))
 
@@ -248,4 +129,111 @@ void ui_mainloop(int is_batch_mode) {
 
     if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
   }
+}
+static int cmd_si(char *args){
+  char *arg = strtok(NULL, " ");
+  if(arg!=NULL){
+    cpu_exec(atoi(arg));
+  }
+  else{
+    cpu_exec(1);
+  }
+  return 0;
+}
+static int cmd_info(char *args){
+  char *arg = strtok(NULL, " ");
+  if(arg==NULL){
+    printf("args error in cmd_info\n");
+    return 0;
+  }
+  char s;
+  int nRet = sscanf(args, "%c", &s);
+  if(nRet<=0){
+    printf("args error in cmd_info\n");
+    return 0;
+  }
+  if(s == 'r'){
+    int i;
+    for(i=0;i<8;i++){
+      printf("%s        0x%x\n", regsl[i], reg_l(i));
+    }
+    printf("eip        0x%x\n", cpu.eip);
+    for(i=0;i<8;i++){
+      printf("%s        0x%x\n", regsw[i], reg_w(i));
+    }
+    for(i=0;i<8;i++){
+      printf("%s        0x%x\n", regsb[i], reg_b(i));
+    }
+  }
+  else if(s=='w'){
+    info_watchpoint();
+  }
+  return 0;
+}
+static int cmd_x(char *args){
+   char *arg1 = strtok(NULL, " ");
+  if(arg1==NULL){
+    printf("u shall input the parameter N to specify the consecutive N..\n");
+    return 0;
+  }
+  int i_arg1 = atoi(arg1);
+  char *arg2 = strtok(NULL, " ");
+  /* TODO: now i just implement the function given accurate number, must fix it in 1-2 or 1-3*/
+  if(arg2==NULL){
+    printf("u shall input the parameter EXPR must generate from keyboard input..!\n");
+    return 0;
+  }
+  uint32_t addr_begin = strtoul(arg2,NULL,16);
+  int i;
+  for(i=0;i<i_arg1;i++){
+    printf("0x%x ", vaddr_read(addr_begin,1));
+    addr_begin+=1;
+  }
+  printf("\n");
+  return 0;
+
+}
+static int cmd_p(char *args){
+  char *arg = strtok(NULL," ");
+  if(arg==NULL){
+    printf("please input the expression u wanna calculate..!\n");
+    return 0;
+  }
+  bool is_finish=true;
+  uint32_t ans = expr(arg,&is_finish);
+  if(!is_finish){
+    printf("please check your expression's format..!\n");
+  }
+  else{
+    printf("%d\n", ans);
+  }
+  return 0;
+}
+
+static int cmd_w(char *args){
+	if(args==NULL){
+		printf("please input expr again \n");
+		return 0;	
+	}	
+	else{
+		WP* wp=new_wp();
+		strcpy(wp->expr,args);
+		bool* success = malloc(4);
+		wp->expr_record_val=expr(args,success);
+		printf("watchpoint %d is set\n",wp->NO);
+		return 0;
+	}
+}
+
+static int cmd_d(char *args){
+	if(args==NULL){
+		printf("please input expr again \n");
+		return 0;	
+	}	
+	else{
+		int wpid=args[0]-'0';
+		free_wp(wpid);
+		printf("watchpoint %d is deleted\n",wpid);
+		return 0;
+	}
 }

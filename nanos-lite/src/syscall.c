@@ -1,6 +1,13 @@
 #include "common.h"
 #include "syscall.h"
 #include "fs.h"
+
+extern int fs_open(const char *path,int,int);
+extern ssize_t fs_read(int,void*,size_t);
+extern ssize_t fs_write(int,void*,size_t);
+extern off_t fs_lseek(int,off_t,int);
+int fs_close(int fd);
+
 static inline _RegSet* sys_none(_RegSet *r){
   SYSCALL_ARG1(r) = 1; //约定系统调用返回值存于此，即eax
   return NULL;

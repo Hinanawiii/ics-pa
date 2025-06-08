@@ -1,42 +1,21 @@
 #include "common.h"
 #include "fs.h"
-#include "memory.h"
-#define DEFAULT_ENTRY ((void *)0x8048000)
 
+#define DEFAULT_ENTRY ((void *)0x4000000)
 
-// 从ramdisk中`offset`偏移处的`len`字节读入到`buf`中
-void ramdisk_read(void *buf, off_t offset, size_t len);
+extern uint8_t ramdisk_start;
+extern uint8_t ramdisk_end;
 
-// 把`buf`中的`len`字节写入到ramdisk中`offset`偏移处
-void ramdisk_write(const void *buf, off_t offset, size_t len);
+#define RAMDISK_SIZE ((&ramdisk_end) - (&ramdisk_start))
 
-// 返回ramdisk的大小, 单位为字节
-size_t get_ramdisk_size();
+extern void ramdisk_read(void *buf, off_t offset, size_t len);
+
 uintptr_t loader(_Protect *as, const char *filename) {
   // TODO();
-  int i;void *pa;
+  // ramdisk_read(DEFAULT_ENTRY, 0, RAMDISK_SIZE);
   int fd = fs_open(filename, 0, 0);
-  int bytes = fs_filesz(fd);
-  int n = bytes / PGSIZE;
-  int m = bytes % PGSIZE;
-
-  for (i = 0; i < n; i++) {
-    pa = new_page();
-    _map(as, DEFAULT_ENTRY + i * PGSIZE, pa);
-    fs_read(fd, pa, PGSIZE);
-  }
-  
-  pa = new_page();
-  
-  //Log("filesize=%d",f_size);
-  //Log("Calling fs_read with fd=%d", fd);
-  
-  _map(as,DEFAULT_ENTRY+i*PGSIZE,pa);
-  
-  //fs_read(fd, DEFAULT_ENTRY, f_size);
-  fs_read(fd,pa,m);
+  Log("filename=%s,fd=%d",filename,fd);
+  fs_read(fd, DEFAULT_ENTRY, fs_filesz(fd));
   fs_close(fd);
-  
   return (uintptr_t)DEFAULT_ENTRY;
-
 }

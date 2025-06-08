@@ -26,6 +26,7 @@ static inline make_DopHelper(I) {
  * the one above from the view of implementation. So we use another helper
  * function to decode it.
  */
+/* sign immediate */
 static inline make_DopHelper(SI) {
   assert(op->width == 1 || op->width == 4);
 
@@ -37,11 +38,11 @@ static inline make_DopHelper(SI) {
    *
    op->simm = ???
    */
-
-
-  t0 = instr_fetch(eip,op->width);
-  rtl_sext(&t0,&t0,op->width);
-  op->simm = t0;
+  //TODO();
+  op -> simm = instr_fetch(eip, op -> width);
+  if(op -> width == 1) {
+    op -> simm = (int8_t)op -> simm;
+  }
 
   rtl_li(&op->val, op->simm);
 
@@ -49,6 +50,7 @@ static inline make_DopHelper(SI) {
   snprintf(op->str, OP_STR_SIZE, "$0x%x", op->simm);
 #endif
 }
+
 /* I386 manual does not contain this abbreviation.
  * It is convenient to merge them into a single helper function.
  */
@@ -304,6 +306,10 @@ make_DHelper(out_a2dx) {
 #ifdef DEBUG
   sprintf(id_dest->str, "(%%dx)");
 #endif
+}
+
+make_DHelper(lidt_a) {
+  decode_op_a(eip, id_dest, true);
 }
 
 void operand_write(Operand *op, rtlreg_t* src) {

@@ -12,7 +12,7 @@
 // FIXME: this is temporary
 
 int _syscall_(int type, uintptr_t a0, uintptr_t a1, uintptr_t a2){
-  int ret = -1;		
+  int ret = -1;
   asm volatile("int $0x80": "=a"(ret): "a"(type), "b"(a0), "c"(a1), "d"(a2));
   return ret;
 }
@@ -21,39 +21,41 @@ void _exit(int status) {
   _syscall_(SYS_exit, status, 0, 0);
 }
 
-//ignore flags and mode
 int _open(const char *path, int flags, mode_t mode) {
- return  _syscall_(SYS_open,(uintptr_t)path,flags,mode);
-
+  return _syscall_(SYS_open, (uintptr_t)path, flags, mode);
 }
 
-int _write(int fd, void *buf, size_t count){
- return _syscall_(SYS_write,fd,(uintptr_t)buf,count);
-  //_exit(SYS_write);
+int _write(int fd, void *buf, size_t count) {
+  return _syscall_(SYS_write, fd, buf, count);
 }
-
-extern char _end;
-static intptr_t pb=(intptr_t) &_end; 
-void *_sbrk(intptr_t increment){
-	intptr_t before=pb;	
-	intptr_t ret= _syscall_(SYS_brk,before+increment,0,0);
-	if(ret==0){
-		pb+=increment;
-		return (void*)before;
-	}
-	else return (void *)-1;
+extern char _end;//为了记录旧的brk，需要这个
+static intptr_t program_break=(intptr_t)&_end;
+void *_sbrk(intptr_t increment) {
+  
+  char *old_program_break = program_break;
+  
+  // 调用SYS_brk系统调用来设置新的program_break
+  if (_syscall_(SYS_brk, program_break + increment, 0, 0) == 0) {
+    // 成功，更新program_break
+    program_break += increment;
+		    
+    return old_program_break;
+  }
+  
+  // 失败
+  return (void *)-1;
 }
 
 int _read(int fd, void *buf, size_t count) {
-  return  _syscall_(SYS_read,fd,(uintptr_t)buf,count); 
+  return _syscall_(SYS_read, fd, (uintptr_t)buf, count);
 }
 
 int _close(int fd) {
-  return _syscall_(SYS_close,fd,0,0);
+  return _syscall_(SYS_close, fd, 0, 0);
 }
 
 off_t _lseek(int fd, off_t offset, int whence) {
- return _syscall_(SYS_lseek,fd,offset,whence);
+  return _syscall_(SYS_lseek, fd, offset, whence);
 }
 
 // The code below is not used by Nanos-lite.

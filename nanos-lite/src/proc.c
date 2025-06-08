@@ -15,9 +15,9 @@ void load_prog(const char *filename) {
   uintptr_t entry = loader(&pcb[i].as, filename);
 
   // TODO: remove the following three lines after you have implemented _umake()
-  //_switch(&pcb[i].as);
-  //current = &pcb[i];
-  //((void (*)(void))entry)();
+//  _switch(&pcb[i].as);
+ // current = &pcb[i];
+ // ((void (*)(void))entry)();
 
   _Area stack;
   stack.start = pcb[i].stack;
@@ -26,30 +26,18 @@ void load_prog(const char *filename) {
   pcb[i].tf = _umake(&pcb[i].as, stack, stack, (void *)entry, NULL, NULL);
 }
 
+static int current_game=0;
+
+void change(){
+ current_game=2-current_game;
+}
+
+static int i=0;
 _RegSet* schedule(_RegSet *prev) {
-  if (current != NULL) {
-    current->tf = prev;
-  }else {
-    current = &pcb[0];   // 第一次调度初始化为仙剑
-  }
-
-  // 当前系统只有一个用户进程，直接切换回它
-  //current = &pcb[0];
-  //_switch(&current->as);
-  //return current -> tf;
-  static int num = 0;         // 调度计数器
-  static const int freq = 1000;
-  
-  if (current == &pcb[0]) {   // 当前是仙剑
-    num++;
-  if (num >= freq) {
-      current = &pcb[1];      // 切换到 hello
-      num = 0;
-    }
-  } else {                    // 当前是 hello
-    current = &pcb[0];        // 调回仙剑
-  }
-
-  _switch(&current->as);      // 切换地址空间
-  return current->tf;         // 返回新进程的上下文
+  current->tf=prev;
+  i++;
+  // current=(i%200==0?&pcb[1]:&pcb[current_game]); 
+ current=&pcb[0];
+  _switch(&current->as);
+  return current->tf;
 }

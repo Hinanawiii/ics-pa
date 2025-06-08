@@ -71,3 +71,7 @@ make_EHelper(int);
 make_EHelper(iret);
 make_EHelper(in);
 make_EHelper(out);
+
+
+make_EHelper(shrd);
+make_EHelper(shld);

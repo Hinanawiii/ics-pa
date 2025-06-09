@@ -51,7 +51,7 @@ int fs_open(const char *pathname, int flags, int mode) {
 		}
 	}
 	assert(0);
-	Log("read over");
+	//Log("read over");
 	return -1;
 }
 
@@ -76,7 +76,7 @@ ssize_t fs_read(int fd, void *buf, size_t len) {
 			break;
 		default:
 			//TODO
-			Log("buf=%p,disk_offset=%p,open_offset=%p,len=%d,fd=%d",buf,file_table[fd].disk_offset,file_table[fd].open_offset,len,fd);
+			//Log("buf=%p,disk_offset=%p,open_offset=%p,len=%d,fd=%d",buf,file_table[fd].disk_offset,file_table[fd].open_offset,len,fd);
 			ramdisk_read(buf,file_table[fd].disk_offset+file_table[fd].open_offset,len);
 			file_table[fd].open_offset +=len;
 			break;
@@ -108,7 +108,7 @@ ssize_t fs_write(int fd, const void *buf, size_t len) {
       file_table[fd].open_offset += len;
       break;
 	}
-  Log("file write over");
+  //Log("file write over");
 
 	return len;
 }

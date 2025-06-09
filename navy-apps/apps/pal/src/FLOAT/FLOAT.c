@@ -40,30 +40,29 @@ FLOAT f2F(float a) {
    * stack. How do you retrieve it to another variable without
    * performing arithmetic operations on it directly?
    */
-	union float_ {
-  struct {
-      uint32_t man : 23;
-      uint32_t exp : 8;
-      uint32_t sign : 1;
-    };
-    uint32_t val;
-  };
-  union float_ f;
-  f.val = *((uint32_t*)(void*)&a);
-  int exp = f.exp - 127;
-  FLOAT ret = 0;
-  if (exp == 128)
-    assert(0);
+  union {
+    float f;
+    uint32_t u;
+  } v = { a };
+
+  uint32_t sign = v.u >> 31;
+  int32_t exp = ((v.u >> 23) & 0xFF) - 127;
+  uint32_t frac = v.u & 0x7FFFFF;
+  uint32_t mant = frac | 0x800000;
+  int64_t res;
+
   if (exp >= 0) {
-    int mov = 7 - exp;
-    if (mov >= 0)
-      ret = (f.man | (1 << 23)) >> mov;
-    else
-      ret = (f.man | (1 << 23)) << (-mov);
+    if (exp > 7) {
+      res = (int64_t)mant << (exp - 7);
+    } else {
+      res = (int64_t)mant >> (7 - exp);
+    }
+  } else {
+    res = (int64_t)mant >> (-(exp - 7));
   }
-  else
-    return 0;
-  return f.sign == 0 ? ret : -ret;
+  if (sign) res = -res;
+
+  return (FLOAT)res;
 }
 
 FLOAT Fabs(FLOAT a) {

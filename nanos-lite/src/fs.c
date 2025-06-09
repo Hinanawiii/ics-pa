@@ -64,6 +64,9 @@ extern void ramdisk_write(const void *buf, off_t offset, size_t len);
 int fs_open(const char*filename, int flags, int mode) {
 	for(int i = 0; i < NR_FILES; i++){
 		if(strcmp(filename, file_table[i].name) == 0) {
+		
+		file_table[i].open_offset = 0;//这下真是超时空救兵了
+		
 			Log("success open:%d:%s",i,filename);
 			return i;
 		}

@@ -131,66 +131,103 @@ void ui_mainloop(int is_batch_mode) {
   }
 }
 static int cmd_si(char *args){
+
   char *arg = strtok(NULL, " ");
-  if(arg!=NULL){
-    cpu_exec(atoi(arg));
-  }
-  else{
-    cpu_exec(1);
-  }
-  return 0;
-}
-static int cmd_info(char *args){
-  char *arg = strtok(NULL, " ");
-  if(arg==NULL){
-    printf("args error in cmd_info\n");
-    return 0;
-  }
-  char s;
-  int nRet = sscanf(args, "%c", &s);
-  if(nRet<=0){
-    printf("args error in cmd_info\n");
-    return 0;
-  }
-  if(s == 'r'){
-    int i;
-    for(i=0;i<8;i++){
-      printf("%s        0x%x\n", regsl[i], reg_l(i));
-    }
-    printf("eip        0x%x\n", cpu.eip);
-    for(i=0;i<8;i++){
-      printf("%s        0x%x\n", regsw[i], reg_w(i));
-    }
-    for(i=0;i<8;i++){
-      printf("%s        0x%x\n", regsb[i], reg_b(i));
+  int steps = 1;  // default value
+  
+  if (arg != NULL) {
+    steps = atoi(arg);
+    if (steps <= 0) {
+      printf("Invalid step count: %s\n", args);
+      printf("Invalid number of steps. Using default (1).\n");
+      steps = 1;
     }
   }
-  else if(s=='w'){
-    info_watchpoint();
-  }
-  return 0;
-}
-static int cmd_x(char *args){
-   char *arg1 = strtok(NULL, " ");
-  if(arg1==NULL){
-    printf("NEED N\n");
-    return 0;
-  }
-  int i_arg1 = atoi(arg1);
-  char *arg2 = strtok(NULL, " ");
-  if(arg2==NULL){
-    printf("NEED EXPR\n");
-    return 0;
-  }
-  uint32_t addr_begin = strtoul(arg2,NULL,16);
-  int i;
-  for(i=0;i<i_arg1;i++){
-    printf("0x%x ", vaddr_read(addr_begin,1));
-    addr_begin+=1;
-  }
-  printf("\n");
+  
+  printf("Executing %d step(s)...\n", steps);
+  cpu_exec(steps);
   return 0;
 
+}
+static int cmd_info(char *args)
+{
+  char *arg = strtok(NULL, " ");
+  if (arg == NULL) {
+    printf("Try 'r' for registers or 'w' for watchpoints.\n");
+    return 0;
+  }
+  
+  if (strcmp(arg, "r") == 0) {
+        // 打印完整寄存器视图
+        printf("-----------------------------------------\n");
+        printf("| %-4s | %-12s | %-4s | %-12s |\n", 
+            "32bit", "Value", "8bit", "Value");
+        
+        for (int i = 0; i < 8; i++) {
+            // 打印32位寄存器及其对应的16/8位寄存器
+            printf("|------|-------------|------|-------------|\n");
+            printf("| %-4s | 0x%08x  | %-4s | 0x%08x  |\n", 
+                regsl[i], reg_l(i),
+                regsb[i], reg_b(i));
+            
+            // 单独处理高位寄存器(AH,CH,DH,BH)
+            if (i < 4) { // 只有前4个寄存器有高位
+                printf("|      |             | %-4s | 0x%08x  |\n",
+                    regsb[i+4], (reg_l(i) >> 8) & 0xff);
+            }
+            
+            // 打印16位寄存器视图
+            printf("| %-4s | 0x%08x  |      |             |\n",
+                regsw[i], reg_w(i));
+        }
+        printf("-----------------------------------------\n");
+        
+        // 打印EIP
+        printf("eip: 0x%08x\n", cpu.eip);
+        return 0;
+    }
+  else if (strcmp(arg, "w") == 0)  {
+        WP *wp = head; // 现在head已正确声明
+        while (wp) {
+            printf("Watchpoint %d: %s = %u\n", wp->NO, wp->expr, wp->old_val);
+            wp = wp->next;
+        }
+    }//补全了打印监视点
+  else {
+    printf("Unknown info subcommand '%s'\n,retry", arg);
+  }
+  
+  return 0;
+}
+static int cmd_x(char *args) {
+    char *arg1 = strtok(args, " ");
+    char *arg2 = strtok(NULL, " ");
+    
+    if (arg1 == NULL || arg2 == NULL) {
+        printf("Usage: x N 0xADDR\n");
+        return 0;
+    }
+
+    int count = atoi(arg1);
+    if (count <= 0) {
+        printf("Invalid count: %s\n", arg1);
+        return 0;
+    }
+
+    // 只支持十六进制数字
+    uint32_t addr;
+    if (sscanf(arg2, "0x%x", &addr) != 1) {
+        printf("Invalid address format: %s\n", arg2);
+        return 0;
+    }
+
+    printf("Address    : Value\n");
+    printf("------------------\n");
+    for (int i = 0; i < count; i++) {
+        uint32_t value = vaddr_read(addr + i*4, 4); 
+        printf("0x%08x: 0x%08x\n", addr + i*4, value);
+    }
+    return 0;
 }
 static int cmd_p(char *args){
   char *arg = strtok(NULL," ");

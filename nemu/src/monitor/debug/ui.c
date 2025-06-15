@@ -173,14 +173,13 @@ static int cmd_info(char *args){
 static int cmd_x(char *args){
    char *arg1 = strtok(NULL, " ");
   if(arg1==NULL){
-    printf("u shall input the parameter N to specify the consecutive N..\n");
+    printf("NEED N\n");
     return 0;
   }
   int i_arg1 = atoi(arg1);
   char *arg2 = strtok(NULL, " ");
-  /* TODO: now i just implement the function given accurate number, must fix it in 1-2 or 1-3*/
   if(arg2==NULL){
-    printf("u shall input the parameter EXPR must generate from keyboard input..!\n");
+    printf("NEED EXPR\n");
     return 0;
   }
   uint32_t addr_begin = strtoul(arg2,NULL,16);
